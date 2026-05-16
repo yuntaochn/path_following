@@ -13,7 +13,7 @@
 \graphicspath{
   {../results/baseline/01b_equal_lookahead/}
   {../results/baseline/01b_equal_lookahead/subfigs/}
-  {../results/baseline/02c_path_generalization_v3/}
+  {../results/baseline/02c_path_generalization_v4/}
   {../results/baseline/03_monte_carlo/}
   {../results/baseline/04_parameter_sensitivity/}
   {../results/baseline/05b_ablation_v2/subfigs/}
@@ -290,23 +290,19 @@ LOS航向RMS/rad$^{a}$ & \textbf{0.1367} & 0.3645 & 0.2466 & 0.1692 \\
 
 \subsection{多路径泛化性分析}
 
-泛化实验采用四条路径（L 形单折 90°、Z 形双折 90°、U 形折返、蛇形交替 90°）和三种工况（无扰动、定常海流、含噪海流），每个场景对比 ILOS-PID、ILOS+FO 和 SHCS。四条路径从单次直角转弯递进至多次连续或交替折弯，用于检验同一组 SHCS 参数在不同折弯密度和折弯方向组合下是否保持一致的精度--能耗折中特性。需要强调的是，本节并不以 SHCS 在 CTE-RMS 上全面优于 ILOS-PID 为判断标准；短前视 ILOS-PID 本身具有更激进的几何跟踪能力，SHCS 的目标是在保持可接受路径误差的同时降低偏航能耗和执行器负荷。图~\ref{fig:generalization_traj} 给出无扰动与定常海流下的轨迹对比，图~\ref{fig:generalization_metrics} 给出相同场景下的 CTE-RMS 与偏航能耗柱状图，表~\ref{tab:generalization} 汇总全部 12 个场景中 SHCS 相对 ILOS-PID 的 CTE 代价和偏航能耗收益。
-
-\end{multicols}
+泛化实验选取两条代表性路径（Z 形双折 90° 与 U 形折返），在无扰动和定常海流两种工况下，对比 ILOS-PID 与 SHCS 的跟踪精度和偏航能耗特性。Z 形路径包含两次连续同向折弯，U 形路径包含一次折返场景，两者覆盖了多段折线路径中典型的折弯密度与几何拓扑差异。FR/FO 基线特性已在典型 L 形路径实验中得到充分刻画，本节聚焦 SHCS 与最强基线 ILOS-PID 的泛化对比。需要强调的是，本节并不以 SHCS 在 CTE-RMS 上全面优于 ILOS-PID 为判断标准；SHCS 的目标是在保持可接受路径误差的同时降低偏航能耗和执行器负荷。图~\ref{fig:generalization_traj} 给出两种工况下的轨迹对比，图~\ref{fig:generalization_metrics} 给出 CTE-RMS 与偏航能耗柱状图，表~\ref{tab:generalization} 汇总两条路径在全部三种工况下的折中数据。
 
 \begin{center}
-\includegraphics[width=0.98\textwidth]{fig_traj_composite.png}\\
-\figcaption{多路径泛化实验轨迹对比（无扰动与定常海流）}
+\includegraphics[width=\linewidth]{fig_traj_composite.png}\\
+\figcaption{多路径泛化实验轨迹对比}
 \label{fig:generalization_traj}
 \end{center}
 
 \begin{center}
-\includegraphics[width=0.98\textwidth]{fig_metrics.png}\\
-\figcaption{多路径泛化实验指标对比（无扰动与定常海流）}
+\includegraphics[width=\linewidth]{fig_metrics.png}\\
+\figcaption{多路径泛化实验指标对比}
 \label{fig:generalization_metrics}
 \end{center}
-
-\begin{multicols}{2}
 
 \begin{center}
 \tabcaption{多路径泛化场景下的精度--能耗折中}
@@ -317,23 +313,17 @@ LOS航向RMS/rad$^{a}$ & \textbf{0.1367} & 0.3645 & 0.2466 & 0.1692 \\
 \hline
 工况 & 路径 & CTE代价 & 能耗降低 \\
 \hline
-\multirow{4}{*}{无扰动}
-  & L形（单折）& $+0.6\%$ & $22.1\%$ \\
-  & Z形（双折）& $-0.2\%$ & $21.0\%$ \\
-  & U形折返    & $+1.8\%$ & $23.3\%$ \\
-  & 蛇形（交替）& $+1.1\%$ & $21.3\%$ \\
+\multirow{2}{*}{无扰动}
+  & Z形（双折）& $-0.6\%$ & $21.3\%$ \\
+  & U形折返    & $+1.4\%$ & $23.6\%$ \\
 \hline
-\multirow{4}{*}{定常海流}
-  & L形（单折）& $+5.9\%$  & $23.1\%$ \\
-  & Z形（双折）& $+10.4\%$ & $21.9\%$ \\
-  & U形折返    & $+2.8\%$  & $24.6\%$ \\
-  & 蛇形（交替）& $+5.2\%$  & $20.1\%$ \\
+\multirow{2}{*}{定常海流}
+  & Z形（双折）& $+10.3\%$ & $22.1\%$ \\
+  & U形折返    & $+2.7\%$  & $24.8\%$ \\
 \hline
-\multirow{4}{*}{含噪海流}
-  & L形（单折）& $+18.2\%$ & $31.7\%$ \\
-  & Z形（双折）& $+19.4\%$ & $31.4\%$ \\
-  & U形折返    & $+13.7\%$ & $31.8\%$ \\
-  & 蛇形（交替）& $+15.1\%$ & $29.7\%$ \\
+\multirow{2}{*}{含噪海流}
+  & Z形（双折）& $+19.1\%$ & $31.5\%$ \\
+  & U形折返    & $+13.6\%$ & $31.8\%$ \\
 \hline
 \end{tabular}
 
@@ -343,9 +333,9 @@ LOS航向RMS/rad$^{a}$ & \textbf{0.1367} & 0.3645 & 0.2466 & 0.1692 \\
 }
 \end{center}
 
-图~\ref{fig:generalization_traj} 表明，在无扰动和定常海流场景下，ILOS-PID 与 SHCS 的轨迹大体重合，未出现发散、绕行或终点不可达现象；这说明 SHCS 的参考整形并未破坏不同路径拓扑下的基本跟踪能力。相比之下，ILOS+FO 在各路径转弯后均存在更明显的外偏，尤其在 Z 形、U 形和蛇形路径中更为突出，说明固定一阶参考模型虽然能平滑航向命令，却难以兼顾多折线路径的几何跟踪。
+图~\ref{fig:generalization_traj} 表明，在无扰动和定常海流场景下，ILOS-PID 与 SHCS 的轨迹大体重合，未出现发散、绕行或终点不可达现象；这说明 SHCS 的参考整形并未破坏不同路径拓扑下的基本跟踪能力。
 
-定量结果进一步说明，SHCS 的泛化优势主要体现在折中规律的一致性，而不是 CTE-RMS 的单指标优势。由表~\ref{tab:generalization} 可见，SHCS 在全部 12 个场景中均进入 3 m 目标容差圆；无扰动工况下 CTE 代价为 $-0.2\%$--$+1.8\%$，几乎与 ILOS-PID 持平，同时偏航能耗降低 21.0\%--23.3\%；定常海流工况下 CTE 代价为 2.8\%--10.4\%，偏航能耗降低 20.1\%--24.6\%；含噪海流工况下 CTE 代价增大至 13.7\%--19.4\%，但偏航能耗降低也提高至 29.7\%--31.8\%。图~\ref{fig:generalization_metrics} 以无扰动和定常海流为例展示了这种关系：SHCS 的 CTE 柱与 ILOS-PID 接近并显著低于 FO，而偏航能耗在所有路径上均低于 ILOS-PID 和 FO。因此，多路径泛化实验支持的结论是：同一组 SHCS 参数能够在不同折弯密度、折弯方向和扰动强度下保持可接受 CTE，并稳定换取偏航能耗下降，而非在所有路径上获得低于 ILOS-PID 的横向误差。
+定量结果进一步说明，SHCS 的泛化优势主要体现在折中规律的一致性，而非 CTE-RMS 的单指标优势。图~\ref{fig:generalization_metrics} 与表~\ref{tab:generalization} 显示，SHCS 在所有测试场景中均进入 3\,m 目标容差圆；无扰动工况下两条路径的 CTE 代价为 $-0.6\%$--$+1.4\%$，与 ILOS-PID 基本持平，同时偏航能耗降低 21.3\%--23.6\%；定常海流工况下 CTE 代价为 $2.7\%$--$10.3\%$，偏航能耗降低 22.1\%--24.8\%。含噪海流工况下（表~\ref{tab:generalization}）CTE 代价增大至 $13.6\%$--$19.1\%$，但偏航能耗节省也提升至 $31.5\%$--$31.8\%$。因此，同一组 SHCS 参数能够在不同折弯密度和扰动强度下保持可接受 CTE，并稳定换取偏航能耗下降。
 
 \subsection{蒙特卡洛统计分析}
 \label{subsec:mc}

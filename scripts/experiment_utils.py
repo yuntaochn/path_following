@@ -419,18 +419,20 @@ METHOD_FILL_COLORS = {
 }
 
 ABLATION_BAR_FACES = {
-    "los_pid":        "#E2E6EC",
-    "anti_windup":    "#C2CAD4",
-    "dynamic_shaper": "#9AA6B5",
-    "shcs_simple":    "#6E7C8E",
-    "shcs":           METHOD_COLORS["shcs"],
+    # 冷灰梯度：基线方法由浅到深；SHCS 用暖陶色区分，避免面积色过饱和。
+    "los_pid":        "#C8CDD5",   # cool light gray
+    "anti_windup":    "#B0BAC5",   # steel gray
+    "dynamic_shaper": "#98A5B2",   # medium steel
+    "shcs_simple":    "#7E8E9E",   # dark steel
+    "shcs":           "#C27B73",   # warm muted terracotta（比线条色更浅）
 }
 ABLATION_BAR_EDGES = {
-    "los_pid":        METHOD_COLORS["los_pid"],
-    "anti_windup":    "#3F4752",
-    "dynamic_shaper": "#2F3742",
-    "shcs_simple":    "#1F2630",
-    "shcs":           "#7B2D26",
+    # 统一细描边（0.65 pt），与填充色同色系但稍深
+    "los_pid":        "#8B929E",
+    "anti_windup":    "#6B7888",
+    "dynamic_shaper": "#546070",
+    "shcs_simple":    "#3E4E5C",
+    "shcs":           "#8F4A44",
 }
 
 # 复合图（多子图拼版）专用 RC：字体按小五号（9 pt）标准，刻度略小保持版面整洁

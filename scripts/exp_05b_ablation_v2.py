@@ -218,8 +218,8 @@ def _draw_cte_bar(ax, results, labels, names):
     vals = [float(res["summary"].get("cross_track_rms", np.nan)) for res in results]
     x = np.arange(len(names))
     bar_colors = [ABLATION_BAR_FACES.get(n, "0.80") for n in names]
-    bar_edges  = [ABLATION_BAR_EDGES.get(n, "#4B5563") for n in names]
-    bar_lws    = [1.40 if n == "shcs" else 0.65 for n in names]
+    bar_edges  = [ABLATION_BAR_EDGES.get(n, "#8B929E") for n in names]
+    bar_lws    = [0.65 for n in names]
     ax.bar(x, vals, width=0.62, color=bar_colors, edgecolor=bar_edges,
            linewidth=bar_lws, zorder=3)
     finite = [v for v in vals if not np.isnan(v)]
@@ -367,8 +367,8 @@ def make_bar_panel(results, labels, names) -> plt.Figure:
             y_max = 1.0
 
         bar_colors = [ABLATION_BAR_FACES.get(n, "0.80") for n in names]
-        bar_edges  = [ABLATION_BAR_EDGES.get(n, "#4B5563") for n in names]
-        bar_lws    = [1.40 if n == "shcs" else 0.65 for n in names]
+        bar_edges  = [ABLATION_BAR_EDGES.get(n, "#8B929E") for n in names]
+        bar_lws    = [0.65 for n in names]
         ax.bar(
             x, vals, width=0.58,
             color=bar_colors, edgecolor=bar_edges, linewidth=bar_lws,

@@ -1,0 +1,312 @@
+{
+  "schema_version": 1,
+  "output": {
+    "root": "results/baseline"
+  },
+  "simulation": {
+    "dt": 0.05,
+    "t_final": 200.0,
+    "integration_method": "rk4",
+    "goal_tolerance": 3.0,
+    "stop_when_reached": true
+  },
+  "metrics": {
+    "analysis_start_time": 15.0,
+    "turn_pre_window": 1.0,
+    "turn_post_window": 10.0,
+    "cross_track_settling_band": 0.5,
+    "heading_settling_band": 0.08726646259971647,
+    "tau_r_limit_config": 9.0
+  },
+  "initial_state": {
+    "eta0": [0.0, -10.0, 0.0],
+    "nu0": [0.0, 0.0, 0.0]
+  },
+  "model": {
+    "type": "cs2"
+  },
+  "los": {
+    "type": "ilos",
+    "lookahead": 10.0,
+    "k_i": 0.05,
+    "sigma_limit": 3.0,
+    "switch_radius": 3.0
+  },
+  "pid": {
+    "surge": {
+      "kp": 20.0,
+      "ki": 2.0,
+      "kd": 1.0,
+      "integral_limit": 3.0,
+      "output_limit": [-60.0, 60.0],
+      "derivative_filter": 0.2,
+      "angle_wrap": false
+    },
+    "heading": {
+      "kp": 30.0,
+      "ki": 3.0,
+      "kd": 8.0,
+      "integral_limit": 1.5,
+      "output_limit": [-9.0, 9.0],
+      "derivative_filter": 0.2,
+      "angle_wrap": true
+    },
+    "heading_aw": {
+      "kp": 30.0,
+      "ki": 3.0,
+      "kd": 8.0,
+      "integral_limit": 1.5,
+      "output_limit": [-9.0, 9.0],
+      "derivative_filter": 0.2,
+      "angle_wrap": true,
+      "aw_gain": 1.0
+    }
+  },
+  "actuator": {
+    "T_max": 30.0,
+    "b": 0.30,
+    "note": "tau_r_max = T_max * b = 9 N*m; tau_u_max = 2 * T_max = 60 N"
+  },
+  "controller": {
+    "u_d": 1.5,
+    "tau_r_filter_tau": 0.06,
+    "tau_r_rate_limit": 220.0
+  },
+  "paths": {
+    "l_shape": {
+      "kind": "points",
+      "points": [[0.0, 0.0], [50.0, 0.0], [50.0, 50.0]]
+    },
+    "double_l": {
+      "kind": "points",
+      "points": [[0.0, 0.0], [40.0, 0.0], [40.0, 30.0], [70.0, 30.0], [70.0, 60.0]]
+    },
+    "s_curve": {
+      "kind": "s_curve",
+      "x_start": 0.0,
+      "y_offset": 0.0,
+      "phase": 0.0,
+      "length": 120.0,
+      "amplitude": 15.0,
+      "num_points": 20,
+      "periods": 1.5
+    }
+  },
+  "disturbances": {
+    "calm": {},
+    "steady_current": {
+      "current_velocity": [0.35, 0.18]
+    },
+    "current": {
+      "current_velocity": [0.35, 0.18],
+      "force_noise_std": [1.2, 0.0, 0.2],
+      "control_noise_std": [0.4, 0.0, 0.1],
+      "eta_noise_std": [0.1, 0.1, 0.017453292519943295],
+      "nu_noise_std": [0.05, 0.02, 0.006981317007977318]
+    }
+  },
+  "shapers": {
+    "dynamic": {
+      "method": "dynamic",
+      "M33": 2.76,
+      "Nr": -1.9,
+      "Nrr": -0.75,
+      "tau_r_max": 9.0,
+      "r_nominal": 1.5
+    },
+    "fixed_rate": {
+      "method": "fixed_rate",
+      "r_fixed": 0.3
+    },
+    "first_order": {
+      "method": "first_order",
+      "T_filter": 2.0
+    }
+  },
+  "velocity_schedulers": {
+    "shcs": {
+      "mode": "coupled",
+      "u_nominal": 1.5,
+      "u_min": 0.3,
+      "lambda_schedule": 0.65,
+      "e_s_max": 1.5707963267948966,
+      "e_s_deadband": 0.08726646259971647,
+      "T_max": 30.0,
+      "b": 0.3,
+      "m11": 25.8,
+      "tau_u_limit": 60.0,
+      "tau_r_deadband": 2.0,
+      "tau_smooth": 0.2,
+      "u_d_rate_limit": 1.5
+    },
+    "shcs_simple": {
+      "mode": "simple",
+      "u_nominal": 1.5,
+      "u_min": 0.3,
+      "lambda_schedule": 0.65,
+      "e_s_max": 1.5707963267948966,
+      "e_s_deadband": 0.08726646259971647,
+      "tau_smooth": 0.2,
+      "u_d_rate_limit": 1.5
+    }
+  },
+  "methods": {
+    "los_pid": {
+      "label": "ILOS-10",
+      "shaper": null,
+      "velocity_scheduler": null
+    },
+    "fixed_rate": {
+      "label": "FR",
+      "shaper": "fixed_rate",
+      "velocity_scheduler": null
+    },
+    "first_order": {
+      "label": "FO",
+      "shaper": "first_order",
+      "velocity_scheduler": null
+    },
+    "dynamic_shaper": {
+      "label": "DS",
+      "shaper": "dynamic",
+      "velocity_scheduler": null,
+      "los_override": {
+        "lookahead": 4.0
+      }
+    },
+    "los_pid_short": {
+      "label": "ILOS",
+      "shaper": null,
+      "velocity_scheduler": null,
+      "los_override": {
+        "lookahead": 4.0
+      }
+    },
+    "anti_windup": {
+      "label": "AW",
+      "shaper": null,
+      "velocity_scheduler": null,
+      "pid_heading": "heading_aw"
+    },
+    "anti_windup_short": {
+      "label": "AW(Δ=4m)",
+      "shaper": null,
+      "velocity_scheduler": null,
+      "pid_heading": "heading_aw",
+      "los_override": {
+        "lookahead": 4.0
+      }
+    },
+    "shcs_simple": {
+      "label": "SHCS-Simple",
+      "shaper": "dynamic",
+      "velocity_scheduler": "shcs_simple",
+      "los_override": {
+        "lookahead": 4.0
+      }
+    },
+    "shcs": {
+      "label": "SHCS",
+      "shaper": "dynamic",
+      "velocity_scheduler": "shcs",
+      "los_override": {
+        "lookahead": 4.0
+      }
+    }
+  },
+  "experiments": {
+    "compare_methods": {
+      "run_dir": "01_typical_l_shape",
+      "methods": ["los_pid", "fixed_rate", "first_order", "shcs"],
+      "path": "l_shape",
+      "disturbance": "steady_current",
+      "seed": 1
+    },
+    "path_generalization": {
+      "run_dir": "02_path_generalization",
+      "methods": ["los_pid", "first_order", "shcs"],
+      "paths": ["l_shape", "double_l", "s_curve"],
+      "disturbances": ["calm", "steady_current", "current"],
+      "seed": 1
+    },
+    "monte_carlo": {
+      "run_dir": "03_monte_carlo",
+      "methods": ["los_pid", "shcs"],
+      "path": "l_shape",
+      "disturbance": "current",
+      "seeds": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    },
+    "sensitivity": {
+      "run_dir": "04_parameter_sensitivity",
+      "method": "shcs",
+      "path": "l_shape",
+      "disturbance": "steady_current",
+      "seed": 1,
+      "scan": {
+        "lambda_schedule": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+        "r_nominal": [0.3, 0.5, 0.7, 1.0, 1.2, 1.5, 2.0, 2.5]
+      }
+    },
+    "ablation": {
+      "run_dir": "05_ablation",
+      "methods": ["los_pid", "anti_windup", "dynamic_shaper", "shcs_simple", "shcs"],
+      "path": "l_shape",
+      "disturbance": "steady_current",
+      "seed": 1
+    },
+    "same_lookahead": {
+      "run_dir": "01_typical_l_shape",
+      "methods": ["los_pid_short", "shcs"],
+      "path": "l_shape",
+      "disturbance": "steady_current",
+      "seed": 1,
+      "note": "补充同前视距离检查（tab:same_lookahead）：ILOS-PID 和 SHCS 均用 Δ=4m"
+    }
+  },
+  "plotting": {
+    "matplotlib_cache_dir": "/tmp/usv_tracking_matplotlib",
+    "figure": {
+      "figsize": [11.0, 8.0],
+      "dpi": 180,
+      "grid": [2, 2]
+    },
+    "style": {
+      "reference_linewidth": 1.5,
+      "trajectory_linewidth": 2.0,
+      "time_series_linewidth": 1.8,
+      "secondary_linewidth": 1.6,
+      "zero_linewidth": 0.8,
+      "waypoint_size": 20.0,
+      "grid_alpha": 0.3,
+      "secondary_alpha": 0.75,
+      "bar_tick_rotation": 20.0,
+      "axis_margin": 0.08
+    }
+  },
+  "summary_fields": [
+    "method",
+    "method_label",
+    "path",
+    "disturbance",
+    "seed",
+    "reached_goal",
+    "path_completed",
+    "reach_time",
+    "completion_time",
+    "completion_reason",
+    "analysis_start_time",
+    "final_dist_to_goal",
+    "cross_track_rms",
+    "cross_track_max_abs",
+    "heading_error_rms",
+    "speed_error_rms",
+    "control_energy_tau_u_cmd",
+    "control_energy_tau_r_cmd",
+    "turn_cte_peak_abs",
+    "turn_sat_ratio_tau_r_cmd",
+    "turn_cte_rms",
+    "speed_reduction_mean_pct",
+    "speed_reduction_max_pct",
+    "min_u_d"
+  ]
+}

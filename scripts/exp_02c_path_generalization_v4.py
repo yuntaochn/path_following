@@ -33,6 +33,7 @@ Path(os.environ["MPLCONFIGDIR"]).mkdir(parents=True, exist_ok=True)
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import matplotlib.patheffects as pe
 from matplotlib.lines import Line2D
 
 from baseline import get_config
@@ -123,6 +124,26 @@ def _compute_width_ratios() -> list:
 
 _WIDTH_RATIOS = _compute_width_ratios()
 
+DIST_LABELS_EN = {
+    "calm":           "Calm",
+    "steady_current": "Steady",
+    "current":        "Noisy",
+}
+
+TRAJ_STYLES = {
+    "los_pid_short": dict(color="#263B52", ls=(0, (3.8, 2.0)), lw=1.45,
+                          zorder=7, alpha=0.98),
+    "shcs":          dict(color="#B24A3B", ls="-", lw=1.28,
+                          zorder=6, alpha=0.92),
+}
+
+
+def _traj_style(method_name: str, idx: int = 0) -> dict:
+    color, ls = get_method_style(method_name, idx)
+    style = dict(color=color, ls=ls, lw=1.1, zorder=5, alpha=1.0)
+    style.update(TRAJ_STYLES.get(method_name, {}))
+    return style
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 图例与面板绘制辅助
@@ -135,12 +156,10 @@ def _legend_handles(cfg) -> tuple:
     handles = [Line2D([0], [0], color="gray", lw=0.8, ls="--", alpha=0.5)]
     labels  = ["Ref."]
     for idx, mn in enumerate(METHOD_NAMES):
-        color, _ = get_method_style(mn, idx)
-        if mn == "los_pid_short":
-            ls, lw = "--", 1.0   # ILOS：虚线
-        else:
-            ls, lw = "-",  1.3   # SHCS：实线
-        handles.append(Line2D([0], [0], color=color, lw=lw, ls=ls))
+        style = _traj_style(mn, idx)
+        handles.append(Line2D([0], [0],
+                              color=style["color"], lw=style["lw"],
+                              ls=style["ls"], alpha=style["alpha"]))
         labels.append(cfg["methods"][mn]["label"])
     return handles, labels
 
@@ -178,26 +197,31 @@ def _draw_panel(ax, all_results, dist_name, path_name, wps, cfg,
         if key not in all_results:
             continue
         res = all_results[key]
-        c, _ = get_method_style(mn, midx)
+        style = _traj_style(mn, midx)
+        line, = ax.plot(res["log"]["x"], res["log"]["y"],
+                        color=style["color"], lw=style["lw"],
+                        ls=style["ls"], alpha=style["alpha"],
+                        zorder=style["zorder"])
         if mn == "los_pid_short":
-            ls, lw, zo = "--", 1.05, 6   # ILOS：虚线，绘于顶层
-        else:
-            ls, lw, zo = "-",  1.3,  5   # SHCS：实线
-        ax.plot(res["log"]["x"], res["log"]["y"],
-                color=c, lw=lw, ls=ls, zorder=zo)
-        _draw_final_pos(ax, res["log"], c)
+            line.set_path_effects([
+                pe.Stroke(linewidth=style["lw"] + 0.85,
+                          foreground="white", alpha=0.74),
+                pe.Normal(),
+            ])
+        _draw_final_pos(ax, res["log"], style["color"])
 
     ax.margins(0.06)
     ax.set_aspect("equal", adjustable="datalim")
-    ax.set_xlabel("x / m" if show_xlabel else "")
-    ax.set_ylabel("y / m" if show_ylabel else "")
+    ax.set_xlabel("x / m" if show_xlabel else "", fontsize=7.0, labelpad=1.0)
+    ax.set_ylabel("y / m" if show_ylabel else "", fontsize=7.0, labelpad=1.0)
 
     if show_legend:
         h, lbl = _legend_handles(cfg)
         ax.legend(h, lbl, loc="upper left", ncol=1,
-                  fontsize=5.8, handlelength=1.5,
+                  fontsize=5.5, handlelength=1.45,
                   framealpha=0.88, edgecolor="#c8d0d8",
-                  borderpad=0.35, handletextpad=0.4)
+                  borderpad=0.28, handletextpad=0.35,
+                  labelspacing=0.22)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -215,13 +239,13 @@ def make_composite(all_results, cfg) -> plt.Figure:
     n_rows = len(DIST_SHOW)   # 2
     n_cols = len(PATH_NAMES_V4)  # 2
 
-    # 单栏宽：7 cm × ~6.7 cm（aspect = 0.48 * n_rows）
-    fig = plt.figure(figsize=heu_figsize("small", 0.48 * n_rows))
+    # Single-column width with extra vertical room for below-axis panel letters.
+    fig = plt.figure(figsize=heu_figsize("small", 1.10))
     gs  = gridspec.GridSpec(
         n_rows, n_cols, figure=fig,
         width_ratios=_WIDTH_RATIOS,
-        hspace=0.32, wspace=0.22,
-        left=0.12, right=0.99, bottom=0.09, top=0.91,
+        hspace=0.48, wspace=0.24,
+        left=0.19, right=0.99, bottom=0.21, top=0.90,
     )
     axes = [[fig.add_subplot(gs[r, c]) for c in range(n_cols)]
             for r in range(n_rows)]
@@ -241,13 +265,12 @@ def make_composite(all_results, cfg) -> plt.Figure:
                         show_xlabel=is_last_row,
                         show_ylabel=is_left_col)
 
-            # 子图序号：放在坐标轴内部左上角，白底标签，避免与轴标签重叠
+            # Panel letters are placed below each subplot.
             letter = chr(ord("a") + panel_idx)
-            ax.text(0.03, 0.97, f"({letter})",
-                    transform=ax.transAxes, ha="left", va="top",
-                    fontsize=6.8, fontweight="bold",
-                    bbox=dict(facecolor="white", edgecolor="none",
-                              alpha=0.80, pad=0.6))
+            label_y = -0.22 if not is_last_row else -0.48
+            ax.text(0.5, label_y, f"({letter})",
+                    transform=ax.transAxes, ha="center", va="top",
+                    fontsize=6.8, fontweight="bold", clip_on=False)
 
             # 列标题（路径名，仅首行）
             if row_idx == 0:
@@ -256,13 +279,13 @@ def make_composite(all_results, cfg) -> plt.Figure:
 
             panel_idx += 1
 
-    # 行标签（工况名，旋转放置）
+    # Row labels sit in the enlarged left gutter, away from the y-axis label.
     for row_idx, dist_name in enumerate(DIST_SHOW):
         ss = gs[row_idx, 0]
         x0, y0, x1, y1 = ss.get_position(fig).extents
-        fig.text(0.02, (y0 + y1) / 2, DIST_LABELS[dist_name],
+        fig.text(0.045, (y0 + y1) / 2, DIST_LABELS[dist_name],
                  rotation=90, ha="center", va="center",
-                 fontsize=7.2, fontweight="bold")
+                 fontsize=6.8, fontweight="bold")
 
     return fig
 
@@ -343,7 +366,7 @@ def make_metrics_figure(all_results, cfg) -> plt.Figure:
     """生成性能指标汇总组图（单栏宽，fig6f_bar 风格）。
 
     布局：1 行 × 2 列（CTE RMS | 偏航能耗）。
-    x 轴：4 场景 = [Z-无扰, Z-定常, U-无扰, U-定常]，每场景 2 根柱（ILOS / SHCS）。
+    x 轴：4 场景 = [Z-Calm, Z-Steady, U-Calm, U-Steady]，每场景 2 根柱（ILOS / SHCS）。
     配色：ILOS 浅灰底+深灰边，SHCS 砖红底+深红边，与消融图 fig6f_bar 风格一致。
     中间竖虚线区分 Z形 / U形 两组。
     """
@@ -352,7 +375,7 @@ def make_metrics_figure(all_results, cfg) -> plt.Figure:
     # x 轴场景顺序：路径在外层，工况在内层
     scenarios = [(pn, dn) for pn in PATH_NAMES_V4 for dn in DIST_SHOW]
     x_tick_labels = [
-        f"{PATHS_V4[pn]['short']}\n{'无扰' if dn == 'calm' else '定常'}"
+        f"{PATHS_V4[pn]['short']}-{DIST_LABELS_EN.get(dn, dn)}"
         for pn, dn in scenarios
     ]
     n_scen = len(scenarios)          # 4
@@ -375,14 +398,14 @@ def make_metrics_figure(all_results, cfg) -> plt.Figure:
     }
 
     metric_defs = [
-        ("cross_track_rms",          "CTE RMS / m",  "横向偏差 CTE RMS"),
-        ("control_energy_tau_r_cmd", "Yaw Energy",   "偏航能耗"),
+        ("cross_track_rms",          "CTE RMS / m",  "横向偏差RMS"),
+        ("control_energy_tau_r_cmd", "Yaw Energy / $(N^2\cdot m^2\cdot s)$",   "偏航控制能耗"),
     ]
 
-    # 单栏宽，1 行高：7 cm × ~4.3 cm
-    fig, axes = plt.subplots(1, 2, figsize=heu_figsize("small", 0.61))
-    fig.subplots_adjust(left=0.13, right=0.99, top=0.91, bottom=0.23,
-                        wspace=0.32)
+    # Single-column width; extra bottom room keeps rotated x labels and captions clear.
+    fig, axes = plt.subplots(1, 2, figsize=heu_figsize("small", 0.68))
+    fig.subplots_adjust(left=0.19, right=0.985, top=0.90, bottom=0.34,
+                        wspace=0.78)
 
     for ax_idx, (field, ylabel, caption) in enumerate(metric_defs):
         ax = axes[ax_idx]
@@ -408,39 +431,35 @@ def make_metrics_figure(all_results, cfg) -> plt.Figure:
                 color=BAR_FACE[mn], edgecolor=BAR_EDGE[mn],
                 linewidth=BAR_LW[mn], label=label, zorder=3,
             )
-            # 仅 SHCS 标注数值
-            if mn == "shcs":
-                for xi, val in enumerate(method_data[mn]):
-                    if not np.isnan(val):
-                        fmt = f"{val:.2f}" if y_max < 5 else f"{val:.0f}"
-                        ax.text(x[xi] + offsets[midx], val + y_max * 0.025,
-                                fmt, ha="center", va="bottom",
-                                fontsize=5.0, fontweight="bold", color="#1a1a1a")
-
         # 竖虚线区分两条路径（Z / U）
         ax.axvline(x=1.5, color="#cccccc", lw=0.7, ls="--", zorder=1)
 
         ax.set_xticks(x)
-        ax.set_xticklabels(x_tick_labels, fontsize=6.5)
+        ax.set_xticklabels(x_tick_labels, fontsize=5.1,
+                           rotation=35, ha="right", rotation_mode="anchor")
         ax.set_xlim(-0.6, n_scen - 0.4)
         ax.set_ylim(0, y_max * 1.28)
-        ax.set_ylabel(ylabel, fontsize=7.0)
+        ax.set_ylabel(ylabel, fontsize=6.1, labelpad=5.0)
+        ax.tick_params(axis="y", labelsize=5.8, pad=1.5)
         ax.grid(axis="y", alpha=0.28, zorder=0)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
 
         # 子图标题（仿 fig6f_bar 风格：下方居中加粗）
         letter = chr(ord("a") + ax_idx)
-        ax.text(0.5, -0.36, f"({letter}) {caption}",
+        caption_text = "横向偏差RMS" if ax_idx == 0 else "偏航控制能耗"
+        ax.text(0.5, -0.32, f"({letter}) {caption_text}",
                 transform=ax.transAxes, ha="center", va="top",
                 fontweight="bold",
-                fontsize=plt.rcParams.get("axes.titlesize", 7),
+                fontsize=6.4,
                 clip_on=False)
 
-        # 图例仅在左侧子图显示
+        # Keep the legend inside the first subplot, but make it compact.
         if ax_idx == 0:
-            ax.legend(loc="upper right", ncol=1, fontsize=6.2,
-                      framealpha=0.90, edgecolor="#c8d0d8")
+            ax.legend(loc="best", ncol=1, fontsize=5.2,
+                      handlelength=1.15, framealpha=0.90,
+                      edgecolor="#c8d0d8", borderpad=0.25,
+                      handletextpad=0.35, labelspacing=0.18)
 
     return fig
 

@@ -63,9 +63,9 @@ DESIGN_SEED = 20260514
 
 CORE_METRICS = [
     ("cross_track_rms",           "横向偏差RMS",           "CTE-RMS /m",           4),
-    ("heading_los_error_rms",     "航向偏差RMS",           "Hdg. RMS /rad",      5),  # 公平指标
-    ("control_energy_tau_r_cmd",  "偏航控制能耗",           "Yaw Energy / $(N^2\cdot m^2\cdot s)$",             2),
-    ("sat_time_raw",              "饱和作用时间",           "Sat. Time /s",   3),
+    ("heading_los_error_rms",     "LOS航向偏差RMS",           "LOS-RMS /rad",      5),  # 公平指标
+    ("control_energy_tau_r_cmd",  "偏航控制能耗",           "Yaw-Energy / $(N^2\cdot m^2\cdot s)$",             2),
+    ("sat_time_raw",              "饱和作用时间",           "Sat-Time /s",   3),
 ]
 
 
@@ -341,9 +341,9 @@ def make_summary_figure_col(mc_data: dict, rows: list[dict]) -> plt.Figure:
 
     panel_specs = [
         ("cross_track_rms",          "(a) 横向偏差RMS",         "CTE-RMS / m"),
-        ("heading_los_error_rms",    "(b) 航向偏差RMS",     "Hdg RMS / rad"),
-        ("control_energy_tau_r_cmd", "(c) 偏航控制能耗",      "Yaw Energy / $(N^2\cdot m^2\cdot s)$"),
-        ("sat_time_raw",             "(d) 饱和作用时间", "Sat. Time / s"),
+        ("heading_los_error_rms",    "(b) LOS航向偏差RMS",     "LOS-RMS / rad"),
+        ("control_energy_tau_r_cmd", "(c) 偏航控制能耗",      "Yaw-Energy / $(N^2\cdot m^2\cdot s)$"),
+        ("sat_time_raw",             "(d) 饱和作用时间", "Sat-Time / s"),
     ]
 
     fig, axes = plt.subplots(2, 2, figsize=heu_figsize("small", 1.15),

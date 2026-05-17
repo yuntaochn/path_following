@@ -327,12 +327,12 @@ def make_bar_panel(results, labels, names) -> plt.Figure:
         "ytick.labelsize": 5.5,
     })
 
-    # (field, 底部标题, 纵轴标签, 数值格式)
+    # (field, 底部标题, 纵轴标签, 数值格式) heading_error_rms HdgRef_RMS_rad
     metrics = [
-        ("cross_track_rms",          "(a) 横向偏差RMS",    "CTE RMS / m",    "{:.3f}"),
-        ("heading_error_rms",        "(b) 航向偏差RMS",    "Hdg. RMS / rad", "{:.4f}"),
-        ("control_energy_tau_r_cmd", "(c) 偏航控制能耗",    "Yaw Energy / $(N^2\cdot m^2\cdot s)$",     "{:.0f}"),
-        ("sat_time_raw",             "(d) 饱和作用时间",    "Sat. Time / s",  "{:.2f}"),
+        ("cross_track_rms",          "(a) 横向偏差RMS",    "CTE-RMS / m",    "{:.3f}"),
+        ("heading_error_rms",        "(b) 航向偏差RMS",    "Ref-RMS / rad", "{:.4f}"),
+        ("control_energy_tau_r_cmd", "(c) 偏航控制能耗",    "Yaw-Energy / $(N^2\cdot m^2\cdot s)$",     "{:.0f}"),
+        ("sat_time_raw",             "(d) 饱和作用时间",    "Sat-Time / s",  "{:.2f}"),
     ]
 
     x = np.arange(len(names))

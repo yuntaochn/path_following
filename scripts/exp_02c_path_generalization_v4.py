@@ -61,12 +61,12 @@ SEED         = 1
 PATHS_V4 = {
     "z_double": dict(
         wps   = np.array([[0, 0], [40, 0], [40, 55], [80, 55]], dtype=float),
-        label = "Z形（双折90°）",
+        label = "Z形",
         short = "Z",
     ),
     "u_return": dict(
         wps   = np.array([[0, 0], [60, 0], [60, 65], [0, 65]], dtype=float),
-        label = "U形折返",
+        label = "U形",
         short = "U",
     ),
 }
@@ -398,8 +398,8 @@ def make_metrics_figure(all_results, cfg) -> plt.Figure:
     }
 
     metric_defs = [
-        ("cross_track_rms",          "CTE RMS / m",  "横向偏差RMS"),
-        ("control_energy_tau_r_cmd", "Yaw Energy / $(N^2\cdot m^2\cdot s)$",   "偏航控制能耗"),
+        ("cross_track_rms",          "CTE-RMS / m",  "横向偏差RMS"),
+        ("control_energy_tau_r_cmd", "Yaw-Energy / $(N^2\cdot m^2\cdot s)$",   "偏航控制能耗"),
     ]
 
     # Single-column width; extra bottom room keeps rotated x labels and captions clear.

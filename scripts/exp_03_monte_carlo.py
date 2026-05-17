@@ -5,7 +5,7 @@
 
   - 海流速度在名义 steady/current 附近随机变化；
   - 力噪声、控制噪声、测量噪声强度按 case 随机缩放；
-  - 初始横向偏差和初始航向存在小扰动；
+  - 初始横向误差和初始航向存在小扰动；
   - 每个 case 还包含小的恒定环境力偏置。
 
 每个随机 case 对 ILOS-PID(同前视距离 Δ=4 m) 与 SHCS 成对复用，
@@ -62,8 +62,8 @@ N_CASES = 30
 DESIGN_SEED = 20260514
 
 CORE_METRICS = [
-    ("cross_track_rms",           "横向偏差RMS",           "CTE-RMS /m",           4),
-    ("heading_los_error_rms",     "LOS航向偏差RMS",           "LOS-RMS /rad",      5),  # 公平指标
+    ("cross_track_rms",           "横向误差RMS",           "CTE-RMS /m",           4),
+    ("heading_los_error_rms",     "LOS航向误差RMS",           "LOS-RMS /rad",      5),  # 公平指标
     ("control_energy_tau_r_cmd",  "偏航控制能耗",           "Yaw-Energy / $(N^2\cdot m^2\cdot s)$",             2),
     ("sat_time_raw",              "饱和作用时间",           "Sat-Time /s",   3),
 ]
@@ -340,8 +340,8 @@ def make_summary_figure_col(mc_data: dict, rows: list[dict]) -> plt.Figure:
     apply_plot_style("panel")
 
     panel_specs = [
-        ("cross_track_rms",          "(a) 横向偏差RMS",         "CTE-RMS / m"),
-        ("heading_los_error_rms",    "(b) LOS航向偏差RMS",     "LOS-RMS / rad"),
+        ("cross_track_rms",          "(a) 横向误差RMS",         "CTE-RMS / m"),
+        ("heading_los_error_rms",    "(b) LOS航向误差RMS",     "LOS-RMS / rad"),
         ("control_energy_tau_r_cmd", "(c) 偏航控制能耗",      "Yaw-Energy / $(N^2\cdot m^2\cdot s)$"),
         ("sat_time_raw",             "(d) 饱和作用时间", "Sat-Time / s"),
     ]

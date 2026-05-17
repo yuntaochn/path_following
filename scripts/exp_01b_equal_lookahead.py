@@ -100,7 +100,7 @@ def _draw_traj(ax, results, labels, names, wps, goal_tol):
 
 
 def _draw_heading(ax, results, names):
-    """几何 LOS 航向偏差（e_psi_los = psi_d - psi），各方法公平可比。"""
+    """几何 LOS 误差（e_psi_los = psi_d - psi），各方法公平可比。"""
     for idx, (res, name) in enumerate(zip(results, names)):
         c, ls = get_method_style(name, idx)
         key = "e_psi_los" if "e_psi_los" in res["log"] else "e_psi"
@@ -192,7 +192,7 @@ def make_composite(results, labels, names, wps, cfg) -> plt.Figure:
     _draw_margin(ax_margin, results, names, T_max, b)
 
     panel_captions = [
-        "(a) 轨迹", "(b) LOS航向偏差", "(c) 横向偏差",
+        "(a) 轨迹", "(b) LOS航向误差", "(c) 横向误差",
         "(d) 偏航力矩",  "(e) 纵荡速度",    "(f) 推进器余量",
     ]
     fs = plt.rcParams["axes.titlesize"]
@@ -221,12 +221,12 @@ def save_subfigures(results, labels, names, wps, cfg, out_dir: Path) -> None:
 
     fig, ax = plt.subplots(figsize=heu_figsize("small", 0.75), layout="constrained")
     _draw_heading(ax, results, names)
-    ax.set_title("(b) LOS航向偏差", fontweight="bold", loc="left")
+    ax.set_title("(b) LOS航向误差", fontweight="bold", loc="left")
     save_fig(fig, out_dir / "fig2b_heading_error.png")
 
     fig, ax = plt.subplots(figsize=heu_figsize("small", 0.75), layout="constrained")
     _draw_cte(ax, results, names)
-    ax.set_title("(c) 横向偏差", fontweight="bold", loc="left")
+    ax.set_title("(c) 横向误差", fontweight="bold", loc="left")
     save_fig(fig, out_dir / "fig2c_cross_track_error.png")
 
     fig, ax = plt.subplots(figsize=heu_figsize("small", 0.75), layout="constrained")

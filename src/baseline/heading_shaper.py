@@ -269,8 +269,8 @@ class HeadingReferenceShaper:
                         "psi_d"           : LOS 原始命令（rad）
                         "psi_ref"         : 整形后参考（rad）
                         "r_lim"           : 本步速率上限（rad/s）
-                        "delta_psi_raw"   : 整形前航向偏差（rad）
-                        "delta_psi_shaped": 整形后航向偏差（rad）
+                        "delta_psi_raw"   : 整形前航向误差（rad）
+                        "delta_psi_shaped": 整形后航向误差（rad）
                         "shaper_method"   : 使用的整形方法
         """
         # 首次调用时，用当前 psi_d 初始化 psi_ref（避免从零起步的大跳变）
@@ -296,8 +296,8 @@ class HeadingReferenceShaper:
             "psi_d_raw": psi_d,                             # LOS 原始命令
             "psi_ref": psi_ref,                             # 整形后参考
             "r_lim": self._last_r_lim,                      # 速率上限
-            "delta_psi_raw": float(self._last_delta_psi),   # 整形前偏差
-            "delta_psi_shaped": float(                      # 整形后偏差
+            "delta_psi_raw": float(self._last_delta_psi),   # 整形前误差
+            "delta_psi_shaped": float(                      # 整形后误差
                 wrap_to_pi(psi_ref - psi_d)
             ),
             "shaper_method": self.method,

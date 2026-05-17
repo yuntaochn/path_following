@@ -398,7 +398,7 @@ def make_metrics_figure(all_results, cfg) -> plt.Figure:
     }
 
     metric_defs = [
-        ("cross_track_rms",          "CTE-RMS / m",  "横向偏差RMS"),
+        ("cross_track_rms",          "CTE-RMS / m",  "横向误差RMS"),
         ("control_energy_tau_r_cmd", "Yaw-Energy / $(N^2\cdot m^2\cdot s)$",   "偏航控制能耗"),
     ]
 
@@ -447,7 +447,7 @@ def make_metrics_figure(all_results, cfg) -> plt.Figure:
 
         # 子图标题（仿 fig6f_bar 风格：下方居中加粗）
         letter = chr(ord("a") + ax_idx)
-        caption_text = "横向偏差RMS" if ax_idx == 0 else "偏航控制能耗"
+        caption_text = "横向误差RMS" if ax_idx == 0 else "偏航控制能耗"
         ax.text(0.5, -0.32, f"({letter}) {caption_text}",
                 transform=ax.transAxes, ha="center", va="top",
                 fontweight="bold",

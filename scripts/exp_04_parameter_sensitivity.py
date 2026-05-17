@@ -72,7 +72,7 @@ R_NOMINAL_VALS = [0.3, 0.5, 0.7, 1.0, 1.2, 1.5, 2.0, 2.5]
 CTE_FIELD = "cross_track_rms"
 ENERGY_FIELD = "control_energy_tau_r_cmd"
 SENS_METRICS = [
-    (CTE_FIELD, "横向偏差RMS / m"),
+    (CTE_FIELD, "横向误差RMS / m"),
     (ENERGY_FIELD, "偏航能耗 / (N^2 m^2 s)"),
 ]
 

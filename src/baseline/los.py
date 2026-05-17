@@ -17,7 +17,7 @@ LOS 导引律是船舶自动路径跟踪的核心算法，其思想是：
     1. LOSGuidance          — 固定前视距离 LOS（Fixed LOS）
     2. AdaptiveLOSGuidance  — 自适应前视距离 LOS（根据误差/速度/曲率动态调整）
     3. ILOSGuidance         — 积分 LOS（Integral LOS，ILOS）
-                              通过对横向误差积分补偿稳态偏差（如海流引起的定常漂移）
+                              通过对横向误差积分补偿稳态误差（如海流引起的定常漂移）
 
 参考文献：
     [1] Fossen, T.I. (2011). Handbook of Marine Craft Hydrodynamics and Motion Control.

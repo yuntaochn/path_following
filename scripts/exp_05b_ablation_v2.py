@@ -21,7 +21,7 @@
     subfigs/
       fig6a_traj.png      — 2-D 轨迹叠图
       fig6b_heading.png   — 航向误差时间历程
-      fig6c_cte.png       — 横向偏差时间历程
+      fig6c_cte.png       — 横向误差时间历程
       fig6d_taur.png      — 偏航力矩（含饱和阴影）
       fig6e_surge.png     — 纵荡速度
       fig6f_bar.png       — 4指标分组条形图（组件贡献汇总）
@@ -142,7 +142,7 @@ def _draw_heading(ax, results, names):
 
 
 def _draw_cte(ax, results, names):
-    """(c) 横向偏差（CTE）时间历程（单位：m）。
+    """(c) 横向误差（CTE）时间历程（单位：m）。
 
     转弯段 CTE 峰值体现各方法差异：
     - 基线/AW：PID 饱和导致无法快速跟踪偏航，CTE 峰值最大
@@ -210,7 +210,7 @@ def _draw_surge(ax, results, names):
 
 
 def _draw_cte_bar(ax, results, labels, names):
-    """(f) 横向偏差 RMS 条形图（组图版，仅展示一个核心指标）。
+    """(f) 横向误差 RMS 条形图（组图版，仅展示一个核心指标）。
 
     在 2×3 组图中嵌入单指标条形图，用于快速对比各消融步骤的最终性能。
     完整的 4 指标多面板条形图保存在 subfigs/fig6f_bar.png 中。
@@ -270,11 +270,11 @@ def make_heading_panel(results, labels, names) -> plt.Figure:
 
 
 def make_cte_panel(results, labels, names) -> plt.Figure:
-    """(c) 横向偏差时间历程（独立子图）"""
+    """(c) 横向误差时间历程（独立子图）"""
     apply_plot_style("panel")
     fig, ax = plt.subplots(figsize=_HALF)
     _draw_cte(ax, results, names)
-    ax.set_title("(c) 横向偏差", fontweight="bold", loc="left")
+    ax.set_title("(c) 横向误差", fontweight="bold", loc="left")
     for idx, (lbl, name) in enumerate(zip(labels, names)):
         c, ls = get_method_style(name, idx)
         ax.plot([], [], color=c, lw=1.4, ls=ls, label=lbl)
@@ -329,8 +329,8 @@ def make_bar_panel(results, labels, names) -> plt.Figure:
 
     # (field, 底部标题, 纵轴标签, 数值格式) heading_error_rms HdgRef_RMS_rad
     metrics = [
-        ("cross_track_rms",          "(a) 横向偏差RMS",    "CTE-RMS / m",    "{:.3f}"),
-        ("heading_error_rms",        "(b) 航向偏差RMS",    "Ref-RMS / rad", "{:.4f}"),
+        ("cross_track_rms",          "(a) 横向误差RMS",    "CTE-RMS / m",    "{:.3f}"),
+        ("heading_error_rms",        "(b) 航向误差RMS",    "Ref-RMS / rad", "{:.4f}"),
         ("control_energy_tau_r_cmd", "(c) 偏航控制能耗",    "Yaw-Energy / $(N^2\cdot m^2\cdot s)$",     "{:.0f}"),
         ("sat_time_raw",             "(d) 饱和作用时间",    "Sat-Time / s",  "{:.2f}"),
     ]
@@ -422,8 +422,8 @@ def make_composite(results, labels, names, waypoints, cfg) -> plt.Figure:
     """生成 2×3 复合图（论文 Fig. 6 全宽主图）。
 
     布局：
-      行 0：(a) 轨迹  (b) 航向误差  (c) 横向偏差
-      行 1：(d) 偏航力矩  (e) 纵荡速度  (f) 横向偏差RMS条形图
+      行 0：(a) 轨迹  (b) 航向误差  (c) 横向误差
+      行 1：(d) 偏航力矩  (e) 纵荡速度  (f) 横向误差RMS条形图
 
     轨迹图包含图例，其余时序面板不重复显示图例以节省空间。
     (f) 位置展示单指标条形对比，完整 4 指标图保存在 subfigs/fig6f_bar.png。
@@ -447,8 +447,8 @@ def make_composite(results, labels, names, waypoints, cfg) -> plt.Figure:
 
     # 底部子图说明（紧贴 x 轴下方）
     panel_captions = [
-        "(a) 轨迹", "(b) 航向误差", "(c) 横向偏差",
-        "(d) 偏航力矩", "(e) 纵荡速度", "(f) 横向偏差RMS",
+        "(a) 轨迹", "(b) 航向误差", "(c) 横向误差",
+        "(d) 偏航力矩", "(e) 纵荡速度", "(f) 横向误差RMS",
     ]
     fs = plt.rcParams["axes.titlesize"]
     for ax, caption in zip(axes, panel_captions):
@@ -511,8 +511,8 @@ def main() -> None:
 
     # ── 2. 打印指标表 & 相对 ILOS-PID 的改善量 ───────────────────────────────
     ABLATION_METRICS = [
-        ("cross_track_rms",          "横向偏差RMS [m]",      ".3f"),
-        ("turn_cte_rms",             "转弯横向偏差RMS [m]", ".3f"),
+        ("cross_track_rms",          "横向误差RMS [m]",      ".3f"),
+        ("turn_cte_rms",             "转弯横向误差RMS [m]", ".3f"),
         ("heading_error_rms",        "航向RMS [rad]",        ".4f"),
         ("control_energy_tau_r_cmd", "偏航能耗",             ".1f"),
         ("total_control_energy",     "总能耗",               ".1f"),

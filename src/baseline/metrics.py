@@ -442,7 +442,7 @@ def summarize_tracking_log(
         return values
 
     # 提取各个误差和控制量序列。全局指标默认排除初始收敛段，避免
-    # 初始 -10 m 偏差把所有方法的 max/RMS 都“压成一样”。
+    # 初始 -10 m 误差把所有方法的 max/RMS 都“压成一样”。
     e_ct = series("e_ct")        # 横向误差
     e_psi = series("e_psi")      # 控制参考航向误差（psi_ref - psi）
     e_psi_los = series("e_psi_los")  # 几何LOS航向误差（psi_d - psi，对所有方法公平）

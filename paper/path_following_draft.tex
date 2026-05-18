@@ -70,8 +70,8 @@
 \clc{}
 \wenxianbiaoshi{A}
 
-% TODO: 修改英文标题
-\entitle{Speed–Heading Shaping for Path Following of Unmanned Surface Vehicles}
+\entitle{Speed–Heading Co-Shaping for Path Following of Unmanned Surface Vehicles}
+% A Speed–Heading Co-Shaping Method for Path Following of Unmanned Surface Vehicles
 
 \enauthor{ZUO Zhe-yi\makebox{$^{1,2\dag}$},~~ZUO Zhe\makebox{$^{1}$}}
 {(1. College of Information Science and Engineering, Northeastern University, Shenyang~110004, China; 2. College of Engineering, Qufu Normal University, Rizhao~276826, China)}
@@ -98,7 +98,7 @@
 
 
 本文工作主要包括：
-% TODO: 表述1）不喜欢
+
 1）基于双桨欠驱动 USV 的推进器可行域，分析航点路径航段切换导致 LOS-PID 偏航力矩饱和与推进余量竞争的原因，并将问题归结为导引参考的可执行化；
 2）构造基于偏航动力学的动态航向整形器，使航向参考变化率随当前偏航状态和执行器能力自适应调整；
 3）设计结合航向整形残差与双桨联合约束的速度调度机制，使期望纵荡速度与转弯阶段的推进器可行域相协调；
@@ -148,7 +148,7 @@
 视线法（LOS）根据无人艇当前位置与路径前视点的几何关系生成期望航迹角\textsuperscript{[5]}。其基本几何关系如图~\ref{fig:los} 所示。
 \begin{center}
 	\includegraphics[width=0.9\columnwidth]{los_tiny.png}\\
-	\bifigcaption{LOS 导引几何关系示意图}{Geometry of LOS guidance}
+	\bifigcaption{LOS导引几何关系}{Geometry of LOS guidance}
 	\label{fig:los}
 \end{center}
 对于由航点序列构成的折线路径，设当前路径段方位角为 $\alpha_k$，无人艇相对于路径的横向误差为 $e_{ct}$，前视距离为 $\Delta$，则经典 LOS 导引律可表示为
@@ -166,13 +166,17 @@
 \psi_d=\psi_p+\arctan\!\left(-\frac{e_{ct}+\sigma_i}{\Delta}\right),
 \label{eq:ilos}
 \end{equation}
-其中
-$\sigma_i$ 为 ILOS 积分状态。
+其中 $\sigma_i$ 为 ILOS 积分状态，其更新律为
+\begin{equation}
+\dot\sigma_i=\frac{k_i\Delta\, e_{ct}}{\Delta^2+(e_{ct}+\sigma_i)^2},
+\label{eq:ilos_sigma}
+\end{equation}
+$k_i>0$ 为积分增益，分母随横向误差增大，具有内置软限幅效果；积分状态在每次航段切换时重置为零，以避免前一段的补偿量污染新航段跟踪；在定常海流下，$\sigma_i$ 渐近补偿稳态横向误差，收敛性参见文献\textsuperscript{[6,7]}。
 由式（\ref{eq:ilos}）可见，较小前视距离 $\Delta$ 能提高导引律对横向误差的响应速度，但也会放大航段切换或误差突变时的航向参考变化。
 
 以 $90^\circ$ 航段切换为例，几何期望航向变化量可近似达到$\Delta\psi_d=\pi/2$。若该参考阶跃直接输入航向 PID 控制器，则比例项会产生较大的瞬时偏航力矩
 $\tau_{r,\rm nom}\approx K_p\Delta\psi_d$。
-当该力矩需求超过双桨推进器可实现范围时，将导致偏航力矩饱和；同时，根据式（5），偏航力矩需求增大还会压缩可用纵荡推力余量，从而影响转弯阶段的速度维持和横向误差收敛。
+当该力矩需求超过双桨推进器可实现范围时，将导致偏航力矩饱和；同时，根据式（\ref{eq:joint_constraint}），偏航力矩需求增大还会压缩可用纵荡推力余量，从而影响转弯阶段的速度维持和横向误差收敛。
 
 因此，本文的控制目标是在双桨推进器约束下保持路径跟踪精度，降低航段切换时的航向参考不可执行程度，抑制偏航力矩饱和及积分卷绕，并在转弯阶段协调纵荡推进与偏航控制资源。
 % 因此，后续 SHCS 设计将把 ILOS 输出视为几何期望命令，并在其进入 PID 控制器前进行可执行化处理。
@@ -190,12 +194,13 @@ $\tau_{r,\rm nom}\approx K_p\Delta\psi_d$。
 \end{multicols}
 \begin{center}
 	\includegraphics[width=0.9\textwidth]{control_architecture.png}\\
-	\bifigcaption{SHCS 控制结构示意图}{Control architecture of SHCS}
+	\bifigcaption{SHCS控制结构}{Control architecture of SHCS}
 	\label{fig:architecture}
 \end{center}
 \begin{multicols}{2}
 
 \subsection{动态航向整形器}
+\label{subsec:shaper}
 
 动态航向整形器的输入为 ILOS 几何航向 $\psi_d$、当前参考航向 $\psi_{ref}$ 和偏航角速度 $r$，输出为更新后的 $\psi_{ref}$。与固定速率限幅或一阶滤波不同，本文根据当前偏航状态和可用偏航力矩估计短时可达的参考变化速率，使整形速度随船体状态自适应变化。
 
@@ -240,6 +245,7 @@ e_s(t)=\mathrm{wrap}(\psi_d(t)-\psi_{ref}(t)),
 上述设计使动态整形器区别于两类常见参考处理方法。固定速率限幅采用常数 $r_{\mathrm{fixed}}$，不随偏航状态和执行器余量变化；一阶参考模型采用固定时间常数 $T_f$，对急转和缓转使用同一动态。本文的 $r_{\lim}(t)$ 则由 $M_{33}$、$N_r$、$N_{rr}$、$\tau_{r,\max}$ 和实时 $r$ 共同决定，与船体偏航可达性直接相关。若底层航向闭环能够稳定跟踪有界速率参考，式（\ref{eq:shaper_update}）有助于避免由几何参考突变造成的持续饱和和积分卷绕；整体路径跟踪性能则由 ILOS 几何收敛性、参考整形滞后和速度调度共同决定。
 
 \subsection{速度调度层}
+\label{subsec:speed}
 
 速度调度层的目标是把“转弯任务强度”和“执行器可行域”转化为期望纵荡速度 $u_d$。其物理动机直接来自式（\ref{eq:joint_constraint}）：对于 CyberShip II，$2/b=2/0.30\approx 6.67$，系数相当大。例如，当航向 PID 请求 $\hat\tau_r=9$ N$\cdot$m（即 $\tau_{r,\max}$）时，由式（\ref{eq:tauu_avail}）得 $\tau_{u,\mathrm{avail}}=0$，双桨推力被偏航通道完全占用，纵荡推力余量归零。因此，大转弯阶段主动降低速度命令并非单纯牺牲航速，而是使速度参考与推进器联合约束保持一致。速度调度层的输入为整形残差 $e_s$；在耦合调度模式（coupled）下，还利用航向 PID 的只读预估量 $\hat{\tau}_r$。这里的只读预估表示在当前 $\psi_{ref}$ 和 $\psi$ 下航向 PID 可能请求的偏航力矩，但不更新 PID 积分和微分内部状态，从而避免调度计算污染真实控制器状态。
 
@@ -296,14 +302,14 @@ u_{d,k-1}^{+}+\dot u_{\max}\Delta t\},
 \end{equation}
 并最终限制在 $[u_{\min},u_{\mathrm{nom}}]$。其中，简单调度模式反映几何转弯尚未完成的程度，耦合调度模式反映偏航控制对执行器资源的占用程度。二者共同构成速度--航向协同中的速度通道。典型单转弯场景下，动态整形已降低 $\hat{\tau}_r$，耦合调度给出的速度上限可能接近 $u_{\mathrm{nom}}$，速度调度主要由 $e_s$ 触发；在连续急转、强扰动或推进器余量更紧的场景中，式（\ref{eq:tauu_avail}）--（\ref{eq:ud_kappa}）可进一步体现物理约束作用。因此，速度调度的作用不应理解为在所有场景中单独降低偏航能耗，而是使纵荡速度命令与转弯阶段的推进器资源分配保持一致。
 
-\subsection{离散实现流程与方法特点}
+\subsection{算法实现流程}
 SHCS 在每个控制周期内按如下顺序执行：
 
 1）ILOS 根据当前位置和航点序列计算几何期望航向 $\psi_d$ 及横向误差；
 
 2）动态航向整形器根据 $(\psi_d,\psi_{\rm ref},r)$ 更新 $\psi_{\rm ref}$，并计算整形残差 $e_s$；
 
-3）若启用约束调度，则通过航向 PID 的只读 preview 接口估计偏航力矩 $\hat{\tau}_r$；
+3）若启用约束调度，则通过航向 PID 的只读预估接口估计偏航力矩 $\hat{\tau}_r$；
 
 4）速度调度器根据 $(e_s,\hat{\tau}_r)$ 计算、平滑并限幅期望纵荡速度 $u_d$；
 
@@ -313,8 +319,16 @@ SHCS 在每个控制周期内按如下顺序执行：
 
 上述过程每步仅包含代数计算、限幅和平滑处理以及常规 PID 更新，计算复杂度较低，便于嵌入已有 ILOS-PID 路径跟踪系统并满足实时性要求。
 
-从控制结构看，SHCS 具有以下特点。第一，参考可执行化发生在导引与控制之间，不改变 ILOS 和底层 PID 的主体结构，工程嵌入成本较低。第二，动态航向整形器根据偏航动力学可达性限制参考变化速率，是抑制航向参考突变和偏航力矩饱和的主要机制。第三，速度调度器利用整形残差和偏航力矩预估量调整期望纵荡速度，使速度命令与转弯阶段的双桨可行域相协调。
+\subsection{稳定性分析}
 
+由式~(\ref{eq:shaper_update}) 可知，速率受限阶段整形残差 $e_s$ 单调递减，在 $r_{\lim} \geq r_{\min} > 0$ 的条件下于有限步内收敛至零；在直线段 $\psi_d$ 缓慢演化，$e_s$ 始终保持有界。
+
+将路径切线坐标下的艏向偏差分解为
+\begin{equation}
+\psi - \alpha_k = \underbrace{\arctan\!\!\left(-\frac{e_{ct}+\sigma_i}{\Delta}\right)}_{\theta_d} + \underbrace{(\psi - \psi_{ref}) - e_s}_{d_s},
+\label{eq:psi_decomp}
+\end{equation}
+其中 $\theta_d$ 为 ILOS 几何导引角，提供趋零收敛驱动；$d_s$ 为航向跟踪误差与整形残差合成的有界扰动，满足 $|d_s| \leq \delta_\psi + \bar{e}_s$（$\delta_\psi$ 为航向 PID 跟踪误差上界）。参照文献\textsuperscript{[6]} 对 ILOS 闭环系统的分析，在 $u \geq u_{\min} > 0$ 及海流常值条件下，横向误差 $e_{ct}$ 与积分状态 $\sigma_i$ 对有界扰动 $d_s$ 满足输入状态稳定性（ISS）\textsuperscript{[13]}，因而一致最终有界；航段切换完成后 $\bar{e}_s \to 0$，退化为文献\textsuperscript{[5,6]} 的标准渐近收敛结论。整形层仅在转弯暂态引入有界偏差，不改变原有闭环结构的稳定性。
 
 \section{仿真验证}
 本文选取 CyberShip II 作为仿真对象。该对象为挪威 NTNU Marine Cybernetics Laboratory 开发的 1:70 海工补给船缩比模型，船长约 1.255 m，质量约 23.8 kg\textsuperscript{[4]}。仿真采用其三自由度操纵模型\textsuperscript{[3,4]}，仅描述纵荡、横荡和偏航运动；控制输入中不设置独立横荡执行器，仅保留纵向推力与偏航力矩输入，因此可作为等效欠驱动双桨 USV 模型。实验评价围绕路径跟踪精度、航向参考可执行性、控制能耗和执行器饱和等指标展开。
@@ -324,6 +338,41 @@ SHCS 在每个控制周期内按如下顺序执行：
 仿真步长为 $\Delta t=0.05$ s，积分方法为四阶 Runge-Kutta（RK4），最长仿真时间为 200 s，初始状态为 $\boldsymbol{\eta}_0=[0,-10,0]^{\mathrm T}$、$\boldsymbol{\nu}_0=[0,0,0]^{\mathrm T}$。终点到达容差设为 3 m，与 ILOS 航点切换半径保持一致。为降低启动瞬态对稳态评价的影响，除特别说明外，指标统计从 15 s 后开始。额定纵荡速度为 $u_{\mathrm{nom}}=1.5$ m/s，最低调度速度为 $u_{\min}=0.3$ m/s，默认降速强度为 $\lambda=0.6$，默认整形速率安全上限为 $r_{\mathrm{nom}}=1.5$ rad/s。
 
 本文各方法采用统一前视距离 $\Delta=4~{\rm m}$。对比方法包括原始 ILOS-PID、固定速率整形方法（FR）、一阶参考模型整形方法（FO）以及所提 SHCS。除参考通道处理方式不同外，各方法使用相同的 USV 模型、PID 参数、推进器约束、路径切换规则和扰动设置。
+固定速率整形（FR）对每步航向参考变化速率施加常数上限 $r_{\rm fixed}$，更新律与式（\ref{eq:shaper_update}）结构相同但 $r_{\lim}$ 取常数，本文取 $r_{\rm fixed}=0.3~{\rm rad/s}$。一阶参考模型整形（FO）采用一阶低通滤波离散更新律：
+\begin{equation}
+\psi_{ref,k+1}=\psi_{ref,k}+\frac{\Delta t}{T_f}\,\mathrm{wrap}(\psi_d-\psi_{ref,k}),
+\label{eq:fo_update}
+\end{equation}
+本文取时间常数 $T_f=2.0~{\rm s}$。FR 的 $r_{\rm fixed}$ 和 FO 的 $T_f$ 均为预设常数，不随当前偏航状态或执行器余量自适应调整，这也是其参考滞后特性与 SHCS 动态整形存在本质差异的原因。
+
+仿真主要参数汇总于表~\ref{tab:params}。
+
+\begin{center}
+\bitabcaption{主要仿真参数}{Key simulation parameters}
+\label{tab:params}
+\journaltable
+\setlength{\tabcolsep}{3.0pt}
+\begin{tabular}{@{}lCl@{}}
+\hline
+参数 & 取值 & 说明 \\
+\hline
+$\Delta$ & 4 m & ILOS 前视距离 \\
+$k_i$ & 0.05 & ILOS 积分增益 \\
+$(K_p,K_i,K_d)_{\psi}$ & $(30,3,8)$ & 航向 PID 增益 \\
+$(K_p,K_i,K_d)_{u}$ & $(20,2,1)$ & 速度 PID 增益 \\
+$T_{\max}$ & 30 N & 单桨最大推力 \\
+$b$ & 0.30 m & 桨间距（$\tau_{r,\max}=9$ N·m）\\
+$N_r$ & $-1.9$ N·m·s/rad & 偏航线性阻尼 \\
+$N_{rr}$ & $-0.75$ N·m·s$^2$/rad$^2$ & 偏航二次阻尼 \\
+$r_{\rm nom}$ & 1.5 rad/s & 动态整形名义速率上限 \\
+$\lambda$ & 0.6 & 速度调度降速强度 \\
+$e_{\rm db}$ / $e_{s,\max}$ & 5° / 90° & 残差死区/归一化上界 \\
+$\tau_{\rm db}$ & 2.0 N·m & 耦合调度力矩死区 \\
+$r_{\rm fixed}$ (FR) & 0.3 rad/s & 固定速率整形 \\
+$T_f$ (FO) & 2.0 s & 一阶整形时间常数 \\
+\hline
+\end{tabular}
+\end{center}
 
 本文采用如下评价指标：
 1）横向误差均方根 CTE-RMS，用于评价路径跟踪精度；
@@ -338,10 +387,10 @@ SHCS 在每个控制周期内按如下顺序执行：
 
 \subsection{典型 L 形路径}
 为分析所提方法在航点切换瞬态过程中的控制效果，选取L形路径作为典型测试场景。
-该场景包含一次 $90^\circ$ 转弯，能够较直观地体现几何 ILOS 命令突变、偏航力矩饱和和双桨推进余量变化之间的关系。本文对比 ILOS-PID、固定速率整形（FR）、一阶参考模型整形（FO）和所提 SHCS 四种方法，所有方法均采用相同前视距离 $\Delta=4~{\rm m}$。表~1 给出各方法的关键指标，图~3 给出对应轨迹和控制响应。
+该场景包含一次 $90^\circ$ 转弯，能够较直观地体现几何 ILOS 命令突变、偏航力矩饱和和双桨推进余量变化之间的关系。本文对比 ILOS-PID、固定速率整形（FR）、一阶参考模型整形（FO）和所提 SHCS 四种方法，所有方法均采用相同前视距离 $\Delta=4~{\rm m}$。表~\ref{tab:typical} 给出各方法的关键指标，图~\ref{fig:typical} 给出对应轨迹和控制响应。
 
 \begin{center}
-\bitabcaption{L形路径各方法指标对比}{Metrics comparison in L path}
+\bitabcaption{L形路径指标对比}{Metrics for the L-shaped path}
 \label{tab:typical}
 \journaltable
 \begin{threeparttable}
@@ -369,7 +418,7 @@ LOS-RMS/rad$^{a}$ & \textbf{0.1367} & 0.3645 & 0.2466 & 0.1692 \\
 
 \begin{center}
 \includegraphics[width=0.98\textwidth]{fig2_composite.png}\\
-\bifigcaption{典型 L 形路径方法对比}{Comparison of methods in the typical L-shape path}
+\bifigcaption{L形路径响应对比}{Responses on the L-shaped path}
 \label{fig:typical}
 \end{center}
 
@@ -380,7 +429,7 @@ ILOS-PID 的 CTE-RMS 和 LOS-RMS 最小，分别为 $0.8574~{\rm m}$ 和 $0.1367
 
 FR 和 FO 均可消除偏航力矩饱和，但 CTE-RMS 分别增至 $3.4459~{\rm m}$ 和 $2.8937~{\rm m}$。这说明单纯采用固定速率限幅或一阶参考模型虽然能够平滑航向参考，但容易引入过大的参考滞后，从而明显增大转弯阶段的横向误差。相比之下，SHCS 的 CTE-RMS 为 $0.9144~{\rm m}$，相较 ILOS-PID 增加 $6.7\%$；同时，偏航能耗由 $103.11$ 降至 $79.22$，降低 $23.2\%$，且偏航力矩饱和时间降为 $0$。
 
-结合图~3 可见，SHCS 在航段切换阶段通过动态航向整形限制参考变化率，避免几何航向阶跃直接作用于航向 PID；同时，速度调度使转弯阶段的纵荡速度命令适当下降，从而为偏航控制保留推进器余量。与 FR/FO 相比，SHCS 的参考滞后更小，因而能够在显著降低偏航控制输入和消除饱和的同时，保持接近 ILOS-PID 的路径跟踪性能。
+结合图~\ref{fig:typical} 可见，SHCS 在航段切换阶段通过动态航向整形限制参考变化率，避免几何航向阶跃直接作用于航向 PID；同时，速度调度使转弯阶段的纵荡速度命令适当下降，从而为偏航控制保留推进器余量。与 FR/FO 相比，SHCS 的参考滞后更小，因而能够在显著降低偏航控制输入和消除饱和的同时，保持接近 ILOS-PID 的路径跟踪性能。
 
 \subsection{多路径泛化性分析}
 为进一步验证所提方法在不同路径形状和扰动条件下的适用性，
@@ -392,18 +441,18 @@ FR 和 FO 均可消除偏航力矩饱和，但 CTE-RMS 分别增至 $3.4459~{\rm
 
 \begin{center}
 \includegraphics[width=\linewidth]{fig_traj_composite.png}\\
-\bifigcaption{多路径泛化实验轨迹对比}{Trajectory comparison in multi-path generalization tests}
+\bifigcaption{多路径轨迹对比}{Trajectories on multiple paths}
 \label{fig:generalization_traj}
 \end{center}
 
 \begin{center}
 \includegraphics[width=\linewidth]{fig_metrics.png}\\
-\bifigcaption{多路径泛化实验指标对比}{Metric comparison in multi-path generalization tests}
+\bifigcaption{多路径指标对比}{Metrics on multiple paths}
 \label{fig:generalization_metrics}
 \end{center}
 
 \begin{center}
-\bitabcaption{多路径泛化场景指标变化}{Metric variations in multi-path generalization scenarios}
+\bitabcaption{多路径指标变化}{Metric variations on multiple paths}
 \label{tab:generalization}
 \journaltable
 \setlength{\tabcolsep}{3.0pt}
@@ -435,10 +484,10 @@ SHCS 在不同路径和扰动条件下表现出较一致的误差与能耗变化
 \subsection{蒙特卡洛统计分析}
 \label{subsec:mc}
 为进一步考察所提方法在随机扰动下的稳定性，本文在L形路径和含噪声海流条件下开展蒙特卡洛仿真实验。
-为避免重复同一含噪场景导致统计方差过小，本文构造随机化配对实验：在 L 形路径上生成 30 个随机工况，每个工况随机抽取海流速度、随机力噪声强度、控制噪声强度、位置/速度测量噪声强度、初始横向误差、初始航向误差和小幅恒定环境力偏置。每个工况分别作用于同前视距离 ILOS-PID（$\Delta=4$ m）和 SHCS，使两种方法经历相同的环境、初值和噪声序列。这样可以排除前视距离差异的影响，直接考察参考整形和速度调度带来的路径跟踪误差与执行器受限条件之间的权衡。聚合统计结果见表~\ref{tab:mc}，30 个配对工况的逐案指标变化见图~\ref{fig:mc_summary}。
+为避免重复同一含噪场景导致统计方差过小，本文构造随机化配对实验：在 L 形路径上生成 30 个随机工况，每个工况随机抽取海流速度、随机力噪声强度、控制噪声强度、位置/速度测量噪声强度、初始横向误差、初始航向误差和小幅恒定环境力偏置，各变量独立采样：海流速度 $u_c\!\sim\!\mathcal{N}(0.35,0.08^2)$ m/s（截断至 $[0.20,\,0.52]$），$v_c\!\sim\!\mathcal{N}(0.18,0.06^2)$ m/s（截断至 $[0.04,\,0.34]$）；力噪声和控制噪声强度在名义值（标准差分别为 $[1.2,0.2]$ N 和 $[0.4,0.1]$ N·m）基础上按 $\mathcal{U}(0.75,1.45)$ 系数随机缩放，位姿与速度测量噪声按 $\mathcal{U}(0.75,1.35)$ 系数缩放；初始横向偏差 $\Delta y\!\sim\!\mathcal{N}(0,1.5^2)$ m，初始航向偏差 $\Delta\psi\!\sim\!\mathcal{N}(0,(4°)^2)$；恒定环境力偏置 $F_x\!\sim\!\mathcal{N}(0,0.25^2)$ N，$M_z\!\sim\!\mathcal{N}(0,0.05^2)$ N·m。每个工况分别作用于同前视距离 ILOS-PID（$\Delta=4$ m）和 SHCS，使两种方法经历相同的环境、初值和噪声序列。这样可以排除前视距离差异的影响，直接考察参考整形和速度调度带来的路径跟踪误差与执行器受限条件之间的权衡。聚合统计结果见表~\ref{tab:mc}，30 个配对工况的逐案指标变化见图~\ref{fig:mc_summary}。
 
 \begin{center}
-\bitabcaption{蒙特卡洛统计结果}{Monte Carlo statistical results}
+\bitabcaption{蒙特卡洛统计结果}{Monte Carlo statistics}
 \label{tab:mc}
 \journaltable
 \setlength{\tabcolsep}{2.0pt}
@@ -463,11 +512,11 @@ LOS-RMS/rad    & $0.1490\pm0.0050$ & $0.1636\pm0.0038$ & $+9.79$  & $<$0.001 \\
 
 \begin{center}
 \includegraphics[width=\columnwidth]{fig4_mc_paired_col.png}\\
-\bifigcaption{蒙特卡洛分析配对图}{Paired plots for Monte Carlo analysis}
+\bifigcaption{蒙特卡洛配对结果}{Paired Monte Carlo results}
 \label{fig:mc_summary}
 \end{center}
 
-表~3 和图~6 显示，在同前视距离条件下，SHCS 并非在所有指标上均优于 ILOS-PID。CTE-RMS 均值由 $0.8870~{\rm m}$ 增至 $1.0606~{\rm m}$，相对增加 $19.56\%$，且 30 个随机工况中均高于基线。这说明短前视 ILOS-PID 在几何路径跟踪上更加激进，而 SHCS 由于引入参考整形，会带来可观测的横向误差代价。LOS-RMS 由 $0.1490~{\rm rad}$ 增至 $0.1636~{\rm rad}$，也反映出参考整形在几何 ILOS 命令与实际航向之间引入了一定滞后。
+表~\ref{tab:mc} 和图~\ref{fig:mc_summary} 显示，在同前视距离条件下，SHCS 并非在所有指标上均优于 ILOS-PID。CTE-RMS 均值由 $0.8870~{\rm m}$ 增至 $1.0606~{\rm m}$，相对增加 $19.56\%$，且 30 个随机工况中均高于基线。这说明短前视 ILOS-PID 在几何路径跟踪上更加激进，而 SHCS 由于引入参考整形，会带来可观测的横向误差代价。LOS-RMS 由 $0.1490~{\rm rad}$ 增至 $0.1636~{\rm rad}$，也反映出参考整形在几何 ILOS 命令与实际航向之间引入了一定滞后。
 
 与此同时，SHCS 在偏航控制输入方面表现出稳定改善。偏航能耗由 $807.17$ 降至 $582.91$，相对降低 $27.78\%$，且全部 30 个工况均低于 ILOS-PID。原始偏航饱和时间由 $0.707~{\rm s}$ 降至 $0.035~{\rm s}$，已接近消除饱和现象。随机化配对结果表明，SHCS 的主要作用不是进一步降低 CTE-RMS，而是在可接受横向误差增加的前提下，稳定降低偏航控制输入强度并抑制航段切换附近的偏航力矩饱和。
 
@@ -476,7 +525,7 @@ LOS-RMS/rad    & $0.1490\pm0.0050$ & $0.1636\pm0.0038$ & $+9.79$  & $<$0.001 \\
 
 \begin{center}
     \includegraphics[width=0.98\linewidth]{fig5_sensitivity.png}\\
-    \bifigcaption{SHCS 参数敏感性分析}{Parameter sensitivity analysis of SHCS}
+    \bifigcaption{SHCS参数敏感性}{Parameter sensitivity of SHCS}
     \label{fig:sensitivity}
 \end{center}
 
@@ -494,7 +543,7 @@ LOS-RMS/rad    & $0.1490\pm0.0050$ & $0.1636\pm0.0038$ & $+9.79$  & $<$0.001 \\
 实验结果如表~\ref{tab:ablation} 和图~\ref{fig:ablation} 所示。
 
 \begin{center}
-\bitabcaption{消融实验数值结果}{Numerical results of the ablation study}
+\bitabcaption{消融实验结果}{Ablation results}
 \label{tab:ablation}
 \journaltable
 \setlength{\tabcolsep}{3.0pt}
@@ -523,11 +572,11 @@ $J_{\tau}=\int[(\tau_u/\tau_{u,\max})^2+(\tau_r/\tau_{r,\max})^2]{\rm d}t$。
 
 \begin{center}
 \includegraphics[width=\columnwidth]{fig6f_bar.png}\\
-\bifigcaption{消融实验关键指标对比}{Comparison of key metrics in the ablation study}
+\bifigcaption{消融实验指标对比}{Metrics of ablation study}
 \label{fig:ablation}
 \end{center}
 
-表~4 显示，AW的饱和时间由 $0.65~{\rm s}$ 降至 $0.55~{\rm s}$，LOS-RMS 由 $0.1367~{\rm rad}$ 略降至 $0.1346~{\rm rad}$。但 AW 的 CTE-RMS 增至 $1.0739~{\rm m}$，偏航能耗也增至 $123.84$。这说明抗积分卷绕能够缓解执行器饱和后的积分累积问题，但不能从源头上解决航段切换处几何航向命令不可执行的问题。
+表~\ref{tab:ablation} 显示，AW的饱和时间由 $0.65~{\rm s}$ 降至 $0.55~{\rm s}$，LOS-RMS 由 $0.1367~{\rm rad}$ 略降至 $0.1346~{\rm rad}$。但 AW 的 CTE-RMS 增至 $1.0739~{\rm m}$，偏航能耗也增至 $123.84$。这说明抗积分卷绕能够缓解执行器饱和后的积分累积问题，但不能从源头上解决航段切换处几何航向命令不可执行的问题。
 
 在 AW 基础上加入动态航向整形后，DS 的 CTE-RMS 降至 $0.9093~{\rm m}$，偏航能耗降至 $75.21$，饱和时间降为 $0$。同时，Ref-RMS 由 $0.1346~{\rm rad}$ 降至 $0.0454~{\rm rad}$，说明输入底层航向 PID 的参考误差明显减小。虽然 DS 的 LOS-RMS 高于 ILOS 和 AW，但这是由参考整形引入的几何命令滞后所导致；从执行器角度看，动态航向整形显著降低了航向参考突变对底层 PID 的冲击。因此，动态航向整形是抑制偏航力矩饱和和降低偏航控制输入的主要机制。
 
@@ -570,6 +619,8 @@ $J_{\tau}=\int[(\tau_u/\tau_{u,\max})^2+(\tau_r/\tau_{r,\max})^2]{\rm d}t$。
 \bibitem{astrom2006}{\AA}str{\"o}m K J, H{\"a}gglund T. Advanced PID Control[M]. Research Triangle Park: ISA, 2006.
 
 \bibitem{oh2010}Oh S R, Sun J. Path following of underactuated marine surface vessels using line-of-sight based model predictive control[J]. Ocean Engineering, 2010, 37(2-3): 289-295.
+
+\bibitem{khalil2002}Khalil H K. Nonlinear Systems[M]. 3rd ed. Upper Saddle River: Prentice-Hall, 2002.
 
 \end{thebibliography}\vspace{-20pt}
 

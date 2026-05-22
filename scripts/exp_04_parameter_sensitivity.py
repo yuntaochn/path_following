@@ -35,6 +35,7 @@ os.environ.setdefault("MPLCONFIGDIR", str(_ROOT / ".cache" / "matplotlib"))
 Path(os.environ["MPLCONFIGDIR"]).mkdir(parents=True, exist_ok=True)
 
 import matplotlib.pyplot as plt
+from matplotlib.transforms import Bbox
 
 from baseline import get_config, get_path
 from scripts.experiment_utils import (
@@ -43,6 +44,7 @@ from scripts.experiment_utils import (
     PAPER_GRID,
     PAPER_ORANGE,
     RESULTS_ROOT,
+    apply_cjk_text_fonts,
     apply_plot_style,
     get_initial_state,
     heu_figsize,
@@ -247,6 +249,14 @@ def _add_subcaption(ax: plt.Axes, text: str) -> None:
     )
 
 
+def _hide_subcaptions(fig: plt.Figure) -> None:
+    """Hide panel captions before exporting standalone subfigures."""
+    for ax in fig.axes:
+        for text in ax.texts:
+            if text.get_text().lstrip().startswith(("(", "（")):
+                text.set_visible(False)
+
+
 def _draw_sensitivity_panel(
     ax: plt.Axes,
     x_vals: list[float],
@@ -365,6 +375,90 @@ def make_composite(
     return fig
 
 
+def _matching_twin_axis(fig: plt.Figure, primary_ax: plt.Axes) -> plt.Axes | None:
+    """Return the twinned y-axis that occupies the same panel as primary_ax."""
+    primary_bounds = primary_ax.get_position().bounds
+    for candidate in fig.axes:
+        if candidate is primary_ax:
+            continue
+        if np.allclose(candidate.get_position().bounds, primary_bounds):
+            return candidate
+    return None
+
+
+def _save_axes_crop(
+    fig: plt.Figure,
+    axes: Iterable[plt.Axes],
+    path: Path,
+    dpi: int = 600,
+    pad_inches: float = 0.02,
+    x_limits: tuple[float, float] | None = None,
+) -> None:
+    """Save the exact rendered area occupied by axes in an existing figure."""
+    apply_cjk_text_fonts(fig)
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    bboxes = [ax.get_tightbbox(renderer) for ax in axes]
+    bboxes = [bbox for bbox in bboxes if bbox is not None]
+    if not bboxes:
+        raise RuntimeError(f"No drawable axes bbox found for {path}")
+
+    bbox_inches = Bbox.union(bboxes).transformed(fig.dpi_scale_trans.inverted())
+    if x_limits is not None:
+        bbox_inches = Bbox.from_extents(x_limits[0], bbox_inches.y0, x_limits[1], bbox_inches.y1)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=dpi, bbox_inches=bbox_inches.padded(pad_inches))
+    print(f"  [保存] {path}")
+
+
+def _save_composite_panel_crops(
+    lambda_data: dict[str, list[float]],
+    rnom_data: dict[str, list[float]],
+    default_lambda: float,
+    default_rnom: float,
+    subfig_dir: Path,
+) -> None:
+    """Save the two combined panels by cropping the actual composite figure."""
+    fig = make_composite(lambda_data, rnom_data, default_lambda, default_rnom)
+    _hide_subcaptions(fig)
+    primary_axes = [ax for ax in fig.axes if ax.get_ylabel() == "CTE RMS / m"]
+    if len(primary_axes) != 2:
+        plt.close(fig)
+        raise RuntimeError(f"Expected 2 primary sensitivity panels, found {len(primary_axes)}")
+
+    panel_names = ["fig5a_lambda_combined", "fig5b_rnom_combined"]
+    panel_specs: list[tuple[str, list[plt.Axes]]] = []
+    for filename, primary_ax in zip(panel_names, primary_axes):
+        panel_axes: list[plt.Axes] = [primary_ax]
+        twin_ax = _matching_twin_axis(fig, primary_ax)
+        if twin_ax is not None:
+            panel_axes.append(twin_ax)
+        panel_specs.append((filename, panel_axes))
+
+    apply_cjk_text_fonts(fig)
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    panel_bboxes = [
+        Bbox.union([ax.get_tightbbox(renderer) for ax in panel_axes])
+        .transformed(fig.dpi_scale_trans.inverted())
+        for _, panel_axes in panel_specs
+    ]
+    shared_x_limits = (
+        min(bbox.x0 for bbox in panel_bboxes),
+        max(bbox.x1 for bbox in panel_bboxes),
+    )
+
+    for filename, panel_axes in panel_specs:
+        _save_axes_crop(
+            fig,
+            panel_axes,
+            subfig_dir / f"{filename}.png",
+            x_limits=shared_x_limits,
+        )
+
+    plt.close(fig)
+
+
 def _draw_single_metric(
     ax: plt.Axes,
     x_vals: list[float],
@@ -377,6 +471,7 @@ def _draw_single_metric(
     marker: str,
     min_pad: float,
     pad_ratio: float,
+    show_subcaption: bool = True,
 ) -> None:
     """绘制单指标子图。
 
@@ -393,7 +488,8 @@ def _draw_single_metric(
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.grid(True, color=GRID, lw=0.45, alpha=0.74)
-    _add_subcaption(ax, title)
+    if show_subcaption:
+        _add_subcaption(ax, title)
 
 
 def _make_single_metric_figure(
@@ -407,6 +503,7 @@ def _make_single_metric_figure(
     marker: str,
     min_pad: float,
     pad_ratio: float,
+    show_subcaption: bool = True,
 ) -> plt.Figure:
     """生成单栏宽的单指标子图 Figure。"""
     apply_plot_style("sensitivity")
@@ -424,6 +521,7 @@ def _make_single_metric_figure(
         marker,
         min_pad,
         pad_ratio,
+        show_subcaption,
     )
     return fig
 
@@ -451,66 +549,15 @@ def save_subfigures(
     """
     subfig_dir = OUT_DIR / "subfigs"
 
-    # 1) 保存合并总图中的两张双纵轴子图。它们与主图表达一致，只是拆开成
-    # 两个独立文件，方便在双栏论文里按“每列一张图”灵活排版。
-    dual_panel_specs = [
-        (
-            "fig5a_lambda_combined",
-            LAMBDA_VALS,
-            lambda_data[CTE_FIELD],
-            lambda_data[ENERGY_FIELD],
-            default_lambda,
-            r"$\lambda$",
-            r"(a) 降速强度 $\lambda$ 的影响",
-            "o",
-            LAMBDA_MIN_CTE_PAD,
-            LAMBDA_MIN_ENERGY_PAD,
-            LAMBDA_PAD_RATIO,
-        ),
-        (
-            "fig5b_rnom_combined",
-            R_NOMINAL_VALS,
-            rnom_data[CTE_FIELD],
-            rnom_data[ENERGY_FIELD],
-            default_rnom,
-            # r"$r_{\mathrm{nom}}$ / (rad$\cdot$s$^{-1}$)",
-            r"$r_{\mathrm{nom}}$ / (rad/s)",
-            r"(b) 名义偏航角速度上限 $r_{\mathrm{nom}}$ 的影响",
-            "s",
-            MIN_RNOM_CTE_PAD,
-            MIN_RNOM_ENERGY_PAD,
-            TIGHT_PAD_RATIO,
-        ),
-    ]
-
-    for filename, x_vals, cte_vals, energy_vals, default_x, xlabel, title, marker, cte_min_pad, energy_min_pad, pad_ratio in dual_panel_specs:
-        apply_plot_style("sensitivity")
-        fig, ax = plt.subplots(1, 1, figsize=heu_figsize("small", 0.90), constrained_layout=False)
-        fig.subplots_adjust(left=0.22, right=0.78, top=0.94, bottom=0.32)
-        handles = _draw_sensitivity_panel(
-            ax,
-            x_vals,
-            cte_vals,
-            energy_vals,
-            default_x,
-            xlabel,
-            title,
-            marker,
-            cte_min_pad,
-            energy_min_pad,
-            pad_ratio,
-        )
-        ax.legend(
-            handles,
-            [h.get_label() for h in handles],
-            loc="upper left",
-            frameon=True,
-            framealpha=0.86,
-            facecolor="white",
-            edgecolor="0.82",
-            handlelength=1.8,
-        )
-        save_fig(fig, subfig_dir / f"{filename}.png")
+    # 1) 直接从完整 2x1 组图中裁切两张双纵轴子图，保证轴区、字号和图例
+    # 与组图中的对应面板一致；子图标题在导出前隐藏，方便论文中手动输入。
+    _save_composite_panel_crops(
+        lambda_data,
+        rnom_data,
+        default_lambda,
+        default_rnom,
+        subfig_dir,
+    )
 
     # 2) 额外保存 4 张单指标子图，主要用于诊断和补充展示。
     subfig_specs = [
@@ -582,6 +629,7 @@ def save_subfigures(
             marker,
             min_pad,
             pad_ratio,
+            show_subcaption=False,
         )
         save_fig(fig, subfig_dir / f"{filename}.png")
 

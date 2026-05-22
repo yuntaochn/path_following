@@ -530,7 +530,7 @@ def paper_style() -> None:
         "legend.fontsize":    7.5,      # 图例，同刻度标签
         # ── 分辨率 ──────────────────────────────────────────────
         "figure.dpi":         150,
-        "savefig.dpi":        600,
+        "savefig.dpi":        900,
         "savefig.facecolor":  "white",
         "figure.facecolor":   "white",
         # ── 网格与脊线 ──────────────────────────────────────────
@@ -597,11 +597,11 @@ def get_envelope_style(method_name: str, label: str | None = None, idx: int = 0)
 # 共享绘图辅助
 # ─────────────────────────────────────────────────────────────────────────────
 
-def save_fig(fig: plt.Figure, *paths, dpi: int = 600, ensure_pdf: bool = False) -> None:
+def save_fig(fig: plt.Figure, *paths, dpi: int = 900, ensure_pdf: bool = False) -> None:
     """将图形对象保存到一个或多个路径，完成后关闭以释放内存。
 
-    自动创建所需的父目录。dpi 默认 600，满足期刊印刷要求。模板要求论文插图
-    优先使用 PDF，因此当调用方只传入 PNG/JPG 路径时，会额外保存同名 PDF。
+    自动创建所需的父目录。dpi 默认 900，满足 Word 版论文插图的高清 PNG 需求。
+    如需同时保存 PDF，可传入 ensure_pdf=True。
     """
     apply_cjk_text_fonts(fig)
 

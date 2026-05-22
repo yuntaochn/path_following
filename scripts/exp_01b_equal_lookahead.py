@@ -199,7 +199,7 @@ def make_composite(results, labels, names, wps, cfg) -> plt.Figure:
     for ax, caption in zip(axes, panel_captions):
         ax.text(0.5, -0.25, caption,
                 transform=ax.transAxes, ha="center", va="top",
-                fontweight="bold", fontsize=fs, clip_on=False)
+                fontweight="normal", fontsize=fs, clip_on=False)
 
     return fig
 
@@ -216,32 +216,32 @@ def save_subfigures(results, labels, names, wps, cfg, out_dir: Path) -> None:
 
     fig, ax = plt.subplots(figsize=heu_figsize("small", 0.85), layout="constrained")
     _draw_traj(ax, results, labels, names, wps, goal_tol)
-    ax.set_title("(a) 轨迹", fontweight="bold", loc="left")
+    # ax.set_title("(a) 轨迹", fontweight="bold", loc="left")
     save_fig(fig, out_dir / "fig2a_trajectory.png")
 
     fig, ax = plt.subplots(figsize=heu_figsize("small", 0.75), layout="constrained")
     _draw_heading(ax, results, names)
-    ax.set_title("(b) LOS航向误差", fontweight="bold", loc="left")
+    # ax.set_title("(b) LOS航向误差", fontweight="bold", loc="left")
     save_fig(fig, out_dir / "fig2b_heading_error.png")
 
     fig, ax = plt.subplots(figsize=heu_figsize("small", 0.75), layout="constrained")
     _draw_cte(ax, results, names)
-    ax.set_title("(c) 横向误差", fontweight="bold", loc="left")
+    # ax.set_title("(c) 横向误差", fontweight="bold", loc="left")
     save_fig(fig, out_dir / "fig2c_cross_track_error.png")
 
     fig, ax = plt.subplots(figsize=heu_figsize("small", 0.75), layout="constrained")
     _draw_taur(ax, results, names, tau_r_lim)
-    ax.set_title("(d) 偏航力矩（阴影为饱和）", fontweight="bold", loc="left")
+    # ax.set_title("(d) 偏航力矩（阴影为饱和）", fontweight="bold", loc="left")
     save_fig(fig, out_dir / "fig2d_yaw_torque.png")
 
     fig, ax = plt.subplots(figsize=heu_figsize("small", 0.75), layout="constrained")
     _draw_surge(ax, results, names)
-    ax.set_title("(e) 纵荡速度", fontweight="bold", loc="left")
+    # ax.set_title("(e) 纵荡速度", fontweight="bold", loc="left")
     save_fig(fig, out_dir / "fig2e_surge_speed.png")
 
     fig, ax = plt.subplots(figsize=heu_figsize("small", 0.75), layout="constrained")
     _draw_margin(ax, results, names, T_max, b)
-    ax.set_title("(f) 推进器余量", fontweight="bold", loc="left")
+    # ax.set_title("(f) 推进器余量", fontweight="bold", loc="left")
     save_fig(fig, out_dir / "fig2f_thruster_margin.png")
 
 

@@ -62,10 +62,10 @@ N_CASES = 30
 DESIGN_SEED = 20260514
 
 CORE_METRICS = [
-    ("cross_track_rms",           "横向误差RMS",           "CTE-RMS /m",           4),
-    ("heading_los_error_rms",     "LOS航向误差RMS",           "LOS-RMS /rad",      5),  # 公平指标
-    ("control_energy_tau_r_cmd",  "偏航控制能耗",           "Yaw-Energy / $(N^2\cdot m^2\cdot s)$",             2),
-    ("sat_time_raw",              "饱和作用时间",           "Sat-Time /s",   3),
+    ("cross_track_rms",           "横向误差RMS",           "CTE RMS / m",                                   4),
+    ("heading_los_error_rms",     "LOS航向误差RMS",         "LOS RMS / rad",                                 5),  # 公平指标
+    ("control_energy_tau_r_cmd",  "偏航控制能耗",           "Yaw Energy / $(N^2\cdot m^2\cdot s)$",          2),
+    ("sat_time_raw",              "饱和作用时间",           "Sat Time / s",                                  3),
 ]
 
 
@@ -250,7 +250,7 @@ def make_summary_figure(mc_data: dict, rows: list[dict]) -> plt.Figure:
     apply_plot_style("panel")
 
     panel_specs = [
-        ("cross_track_rms",          "CTE-RMS",         "m"),
+        ("cross_track_rms",          "CTE RMS",         "m"),
         ("heading_los_error_rms",    "LOS Hdg RMS",     "rad"),
         ("control_energy_tau_r_cmd", "Yaw Energy",      ""),
         ("sat_time_raw",             "Saturation time", "s"),
@@ -297,7 +297,7 @@ def make_summary_figure(mc_data: dict, rows: list[dict]) -> plt.Figure:
         row = row_by_field[field]
         change_c = C_BETTER if s_mean < b_mean else C_WORSE
         ax.set_title(f"({chr(ord('a') + idx)}) {title}",
-                     fontsize=7.2, fontweight="bold", pad=3.5)
+                     fontsize=7.5, fontweight="bold", pad=3.5)
         ax.text(0.97, 0.97,
                 f"{row['SHCS_change%']}\n$p{row['p_display']}$",
                 transform=ax.transAxes, ha="right", va="top",
@@ -340,10 +340,10 @@ def make_summary_figure_col(mc_data: dict, rows: list[dict]) -> plt.Figure:
     apply_plot_style("panel")
 
     panel_specs = [
-        ("cross_track_rms",          "(a) 横向误差RMS",         "CTE-RMS / m"),
-        ("heading_los_error_rms",    "(b) LOS航向误差RMS",     "LOS-RMS / rad"),
-        ("control_energy_tau_r_cmd", "(c) 偏航控制能耗",      "Yaw-Energy / $(N^2\cdot m^2\cdot s)$"),
-        ("sat_time_raw",             "(d) 饱和作用时间", "Sat-Time / s"),
+        ("cross_track_rms",          "(a) 横向误差RMS",         "CTE RMS / m"),
+        ("heading_los_error_rms",    "(b) LOS航向误差RMS",     "LOS RMS / rad"),
+        ("control_energy_tau_r_cmd", "(c) 偏航控制能耗",      "Yaw Energy / $(N^2\cdot m^2\cdot s)$"),
+        ("sat_time_raw",             "(d) 饱和作用时间", "Sat Time / s"),
     ]
 
     fig, axes = plt.subplots(2, 2, figsize=heu_figsize("small", 1.15),
@@ -418,7 +418,7 @@ def make_summary_figure_col(mc_data: dict, rows: list[dict]) -> plt.Figure:
         # 子图标题置于底部（与 exp_01 composite 风格一致）
         ax.text(0.5, -0.12, caption,
                 transform=ax.transAxes, ha="center", va="top",
-                fontweight="bold", fontsize=6.5, clip_on=False)
+                fontweight="bold", fontsize=7.5, clip_on=False)
 
     apply_cjk_text_fonts(fig)
     return fig

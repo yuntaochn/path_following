@@ -511,7 +511,7 @@ def paper_style() -> None:
       切换为黑体，同时保留各文字对象自身的字号设置。
     配色：低饱和色板 + 线型，兼顾屏幕阅读和黑白打印可区分性。
     布局：无顶/右脊线（现代期刊风格），轻灰网格辅助读图。
-    分辨率：显示用 150 dpi，保存用 600 dpi（满足大多数期刊要求）。
+    分辨率：显示用 150 dpi，保存用 1200 dpi（满足期刊高清要求）。
     """
     plt.rcParams.update({
         # ── 字体 ────────────────────────────────────────────────
@@ -530,7 +530,7 @@ def paper_style() -> None:
         "legend.fontsize":    7.5,      # 图例，同刻度标签
         # ── 分辨率 ──────────────────────────────────────────────
         "figure.dpi":         150,
-        "savefig.dpi":        900,
+        "savefig.dpi":        1200,
         "savefig.facecolor":  "white",
         "figure.facecolor":   "white",
         # ── 网格与脊线 ──────────────────────────────────────────
@@ -597,10 +597,10 @@ def get_envelope_style(method_name: str, label: str | None = None, idx: int = 0)
 # 共享绘图辅助
 # ─────────────────────────────────────────────────────────────────────────────
 
-def save_fig(fig: plt.Figure, *paths, dpi: int = 900, ensure_pdf: bool = False) -> None:
+def save_fig(fig: plt.Figure, *paths, dpi: int = 1200, ensure_pdf: bool = False) -> None:
     """将图形对象保存到一个或多个路径，完成后关闭以释放内存。
 
-    自动创建所需的父目录。dpi 默认 900，满足 Word 版论文插图的高清 PNG 需求。
+    自动创建所需的父目录。dpi 默认 1200，满足期刊高清 PNG 需求。
     如需同时保存 PDF，可传入 ensure_pdf=True。
     """
     apply_cjk_text_fonts(fig)

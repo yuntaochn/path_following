@@ -267,10 +267,10 @@ def make_composite(all_results, cfg) -> plt.Figure:
 
             # Panel letters are placed below each subplot.
             letter = chr(ord("a") + panel_idx)
-            label_y = -0.22 if not is_last_row else -0.48
+            label_y = -0.22 if not is_last_row else -0.38
             ax.text(0.5, label_y, f"({letter})",
                     transform=ax.transAxes, ha="center", va="top",
-                    fontsize=6.8, fontweight="bold", clip_on=False)
+                    fontsize=7.5, fontweight="bold", clip_on=False)
 
             # 列标题（路径名，仅首行）
             if row_idx == 0:
@@ -278,6 +278,11 @@ def make_composite(all_results, cfg) -> plt.Figure:
                              fontweight="bold", fontsize=7.5, pad=5.0)
 
             panel_idx += 1
+
+    # 组图版本：网格淡化，避免轨迹叠图视觉拥挤
+    for row in axes:
+        for ax in row:
+            ax.grid(True, alpha=0.12, lw=0.4)
 
     # Row labels sit in the enlarged left gutter, away from the y-axis label.
     for row_idx, dist_name in enumerate(DIST_SHOW):
@@ -315,7 +320,7 @@ def make_path_overview(cfg) -> plt.Figure:
         ax.margins(0.12)
         ax.set_aspect("equal", adjustable="datalim")
         ax.set_title(PATHS_V4[pn]["label"], fontweight="bold",
-                     fontsize=7.4, pad=4.0)
+                     fontsize=7.5, pad=4.0)
         ax.set_xlabel("x / m", fontsize=6.5)
         if col_idx == 0:
             ax.set_ylabel("y / m", fontsize=6.5)
@@ -398,8 +403,8 @@ def make_metrics_figure(all_results, cfg) -> plt.Figure:
     }
 
     metric_defs = [
-        ("cross_track_rms",          "CTE-RMS / m",  "横向误差RMS"),
-        ("control_energy_tau_r_cmd", "Yaw-Energy / $(N^2\cdot m^2\cdot s)$",   "偏航控制能耗"),
+        ("cross_track_rms",          "CTE RMS / m",  "横向误差RMS"),
+        ("control_energy_tau_r_cmd", "Yaw Energy / $(N^2\cdot m^2\cdot s)$",   "偏航控制能耗"),
     ]
 
     # Single-column width; extra bottom room keeps rotated x labels and captions clear.
@@ -451,7 +456,7 @@ def make_metrics_figure(all_results, cfg) -> plt.Figure:
         ax.text(0.5, -0.32, f"({letter}) {caption_text}",
                 transform=ax.transAxes, ha="center", va="top",
                 fontweight="bold",
-                fontsize=6.4,
+                fontsize=7.5,
                 clip_on=False)
 
         # Keep the legend inside the first subplot, but make it compact.

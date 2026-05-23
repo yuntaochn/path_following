@@ -240,12 +240,13 @@ def _add_subcaption(ax: plt.Axes, text: str) -> None:
     """
     ax.text(
         0.5,
-        -0.34,
+        -0.24,
         text,
         transform=ax.transAxes,
         ha="center",
         va="top",
-        fontsize=7.1,
+        fontsize=7.5,
+        fontweight="bold",
     )
 
 
@@ -330,7 +331,7 @@ def make_composite(
     fig, axes = plt.subplots(2, 1, figsize=FIG_SIZE, constrained_layout=False)
     # 手动控制边距：右侧需要容纳第二纵轴标签；上下子图之间需要给中文子图题
     # 留出空间。若插入论文后显得过松/过紧，可优先调 hspace。
-    fig.subplots_adjust(left=0.22, right=0.78, top=0.95, bottom=0.12, hspace=0.58)
+    fig.subplots_adjust(left=0.22, right=0.78, top=0.95, bottom=0.12, hspace=0.42)
 
     lambda_handles = _draw_sensitivity_panel(
         axes[0],
@@ -390,7 +391,7 @@ def _save_axes_crop(
     fig: plt.Figure,
     axes: Iterable[plt.Axes],
     path: Path,
-    dpi: int = 600,
+    dpi: int = 1200,
     pad_inches: float = 0.02,
     x_limits: tuple[float, float] | None = None,
 ) -> None:

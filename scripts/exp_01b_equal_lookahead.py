@@ -192,15 +192,25 @@ def make_composite(results, labels, names, wps, cfg) -> plt.Figure:
     _draw_surge(ax_surge, results, names)
     _draw_margin(ax_margin, results, names, T_max, b)
 
+    # 组图版本：网格淡化（避免拥挤），刻度与 ylabel 间距收紧
+    for ax in axes:
+        ax.grid(True, alpha=0.12, lw=0.4)
+        ax.tick_params(axis="y", pad=1.0)
+        ax.tick_params(axis="x", pad=1.5)
+        if ax.yaxis.label.get_text():
+            ax.yaxis.labelpad = 0.5
+        if ax.xaxis.label.get_text():
+            ax.xaxis.labelpad = 0.5
+
     panel_captions = [
         "(a) 轨迹", "(b) LOS航向误差", "(c) 横向误差",
         "(d) 偏航力矩",  "(e) 纵荡速度",    "(f) 推进器余量",
     ]
-    fs = 8.0
+    fs = 7.5
     for ax, caption in zip(axes, panel_captions):
         ax.text(0.5, -0.28, caption,
                 transform=ax.transAxes, ha="center", va="top",
-                fontweight="normal", fontsize=fs, clip_on=False)
+                fontweight="bold", fontsize=fs, clip_on=False)
 
     return fig
 

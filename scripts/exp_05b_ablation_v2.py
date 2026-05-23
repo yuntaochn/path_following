@@ -329,10 +329,10 @@ def make_bar_panel(results, labels, names) -> plt.Figure:
 
     # (field, 底部标题, 纵轴标签, 数值格式) heading_error_rms HdgRef_RMS_rad
     metrics = [
-        ("cross_track_rms",          "(a) 横向误差RMS",    "CTE-RMS / m",    "{:.3f}"),
-        ("heading_error_rms",        "(b) 航向误差RMS",    "Ref-RMS / rad", "{:.4f}"),
-        ("control_energy_tau_r_cmd", "(c) 偏航控制能耗",    "Yaw-Energy / $(N^2\cdot m^2\cdot s)$",     "{:.0f}"),
-        ("sat_time_raw",             "(d) 饱和作用时间",    "Sat-Time / s",  "{:.2f}"),
+        ("cross_track_rms",          "(a) 横向误差RMS",    "CTE RMS / m",    "{:.3f}"),
+        ("heading_error_rms",        "(b) 航向误差RMS",    "Ref RMS / rad", "{:.4f}"),
+        ("control_energy_tau_r_cmd", "(c) 偏航控制能耗",    "Yaw Energy / $(N^2\cdot m^2\cdot s)$",     "{:.0f}"),
+        ("sat_time_raw",             "(d) 饱和作用时间",    "Sat Time / s",  "{:.2f}"),
     ]
 
     x = np.arange(len(names))
@@ -409,7 +409,7 @@ def make_bar_panel(results, labels, names) -> plt.Figure:
         # 子图标题置于底部（与 exp_01 composite 风格一致）
         ax.text(0.5, -0.20, caption,
                 transform=ax.transAxes, ha="center", va="top",
-                fontweight="bold", fontsize=6.5, clip_on=False)
+                fontweight="bold", fontsize=7.5, clip_on=False)
 
     return fig
 
@@ -450,7 +450,7 @@ def make_composite(results, labels, names, waypoints, cfg) -> plt.Figure:
         "(a) 轨迹", "(b) 航向误差", "(c) 横向误差",
         "(d) 偏航力矩", "(e) 纵荡速度", "(f) 横向误差RMS",
     ]
-    fs = plt.rcParams["axes.titlesize"]
+    fs = 7.5
     for ax, caption in zip(axes, panel_captions):
         ax.text(0.5, -0.18, caption,
                 transform=ax.transAxes, ha="center", va="top",

@@ -75,7 +75,7 @@ TABLE_FIELDS = [
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _lw(name: str) -> float:
-    return 1.6 if name == "shcs" else 1.0
+    return 1.2 if name == "shcs" else 0.8
 
 def _zo(name: str) -> int:
     return 5 if name == "shcs" else 3
@@ -89,8 +89,8 @@ def _draw_traj(ax, results, labels, names, wps, goal_tol):
                 color=c, lw=_lw(name), ls=ls, label=lbl, zorder=_zo(name))
         draw_final_position(ax, res["log"], c)
     ax.set_aspect("equal", adjustable="datalim")
-    ax.set_xlabel("x / m")
-    ax.set_ylabel("y / m")
+    ax.set_xlabel("x / m", labelpad=1.0)
+    ax.set_ylabel("y / m", labelpad=1.0)
     ax.legend(
         loc="best", ncol=2, fontsize=5.5,
         framealpha=0.90, edgecolor="#c8d0d8",
@@ -107,8 +107,8 @@ def _draw_heading(ax, results, names):
         ax.plot(res["log"]["t"], np.degrees(res["log"][key]),
                 color=c, lw=_lw(name), ls=ls, zorder=_zo(name))
     ax.axhline(0, color="k", lw=0.5, alpha=0.4)
-    ax.set_xlabel("t / s")
-    ax.set_ylabel("LOS Heading Error / (°)")
+    ax.set_xlabel("t / s", labelpad=1.0)
+    ax.set_ylabel("LOS Heading Error / (°)", labelpad=1.0)
 
 
 def _draw_cte(ax, results, names):
@@ -117,8 +117,8 @@ def _draw_cte(ax, results, names):
         ax.plot(res["log"]["t"], res["log"]["e_ct"],
                 color=c, lw=_lw(name), ls=ls, zorder=_zo(name))
     ax.axhline(0, color="k", lw=0.5, alpha=0.4)
-    ax.set_xlabel("t / s")
-    ax.set_ylabel("Cross-Track Error / m")
+    ax.set_xlabel("t / s", labelpad=1.0)
+    ax.set_ylabel("Cross-Track Error / m", labelpad=1.0)
 
 
 def _draw_taur(ax, results, names, tau_r_lim):
@@ -137,8 +137,8 @@ def _draw_taur(ax, results, names, tau_r_lim):
                 color=c, lw=_lw(name), ls=ls, zorder=_zo(name))
     ax.axhline( tau_r_lim, color="#B24A3B", lw=0.9, ls="--", alpha=0.82)
     ax.axhline(-tau_r_lim, color="#B24A3B", lw=0.9, ls="--", alpha=0.82)
-    ax.set_xlabel("t / s")
-    ax.set_ylabel("Raw Yaw Torque / (N·m)")
+    ax.set_xlabel("t / s", labelpad=1.0)
+    ax.set_ylabel("Raw Yaw Torque / (N·m)", labelpad=1.0)
 
 
 def _draw_surge(ax, results, names):
@@ -148,8 +148,8 @@ def _draw_surge(ax, results, names):
                 color=c, lw=_lw(name), ls=ls, zorder=_zo(name))
         ax.plot(res["log"]["t"], res["log"]["u_d"],
                 color=c, lw=0.55, ls=":", alpha=0.5)
-    ax.set_xlabel("t / s")
-    ax.set_ylabel("Surge Speed / (m/s)")
+    ax.set_xlabel("t / s", labelpad=1.0)
+    ax.set_ylabel("Surge Speed / (m/s)", labelpad=1.0)
 
 
 def _draw_margin(ax, results, names, T_max, b):
@@ -162,8 +162,8 @@ def _draw_margin(ax, results, names, T_max, b):
                 color=c, lw=_lw(name), ls=ls, zorder=_zo(name))
     ax.axhline(0, color="#B24A3B", lw=0.9, ls="--", alpha=0.82)
     ax.set_ylim(-5, 105)
-    ax.set_xlabel("t / s")
-    ax.set_ylabel("Thruster Margin / %")
+    ax.set_xlabel("t / s", labelpad=1.0)
+    ax.set_ylabel("Thruster Margin / %", labelpad=1.0)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -179,7 +179,8 @@ def make_composite(results, labels, names, wps, cfg) -> plt.Figure:
     tau_r_lim = T_max * b
     wps       = np.asarray(wps)
 
-    fig = plt.figure(figsize=heu_figsize("large", 0.72), layout="constrained")
+    fig = plt.figure(figsize=heu_figsize("large", 0.58), layout="constrained")
+    # fig = plt.figure(figsize=heu_figsize("large", 0.58))
     gs  = gridspec.GridSpec(2, 3, figure=fig)
     axes = [fig.add_subplot(gs[r, c]) for r in range(2) for c in range(3)]
     ax_traj, ax_hdg, ax_cte, ax_taur, ax_surge, ax_margin = axes
@@ -195,9 +196,9 @@ def make_composite(results, labels, names, wps, cfg) -> plt.Figure:
         "(a) 轨迹", "(b) LOS航向误差", "(c) 横向误差",
         "(d) 偏航力矩",  "(e) 纵荡速度",    "(f) 推进器余量",
     ]
-    fs = plt.rcParams["axes.titlesize"]
+    fs = 8.0
     for ax, caption in zip(axes, panel_captions):
-        ax.text(0.5, -0.25, caption,
+        ax.text(0.5, -0.28, caption,
                 transform=ax.transAxes, ha="center", va="top",
                 fontweight="normal", fontsize=fs, clip_on=False)
 

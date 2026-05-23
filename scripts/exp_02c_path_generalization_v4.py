@@ -131,9 +131,9 @@ DIST_LABELS_EN = {
 }
 
 TRAJ_STYLES = {
-    "los_pid_short": dict(color="#263B52", ls=(0, (3.8, 2.0)), lw=1.45,
+    "los_pid_short": dict(color="#263B52", ls=(0, (3.8, 2.0)), lw=1.0,
                           zorder=7, alpha=0.98),
-    "shcs":          dict(color="#B24A3B", ls="-", lw=1.28,
+    "shcs":          dict(color="#B24A3B", ls="-", lw=1.2,
                           zorder=6, alpha=0.92),
 }
 

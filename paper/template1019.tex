@@ -1,0 +1,413 @@
+% !Mode:: "TeX:UTF-8"
+
+%%%中文版式与英文版式通过参数设置
+
+\documentclass[authordraft]{ctacn}%英文版式,去掉作者信息，使用authordraft参数即可
+\usepackage{hhline}
+\usepackage{threeparttable}
+
+\allowdisplaybreaks[4]
+\begin{document}
+
+%%%%%%%输入年、月、卷、期
+\Volume{xxxx}{x}{xxx}{xx}{x}
+\cndoi{1001-0920(0000)00-0000-00}
+\doi{\zihao{-5}10.13195/j.kzyjc.2019.0000}
+\paperdate{2018-xx-xx}{2018-xx-xx}%接收日期，修回日期
+%%%%%%%设置开始页
+\setcounter{page}{1}
+\osid{}
+
+%%%%%%%输入页眉显示的题目
+
+%%%%%%%%%%
+%%%                  本刊为匿名审稿，新投稿时不要填写任何作者信息，包括所有位置的姓名、单位以及邮箱
+%%%%%%%%%%%%
+\runheading{基于速度-航向整形的无人艇路径跟踪方法}%页眉设置,填写论文题目
+\xiangmujijin{}
+\zerenbianwei{编委1.}%责任编委 为空会自动取消显示
+\authorcor{E-mail: zuozheyi@163.com.}%通讯作者邮箱,新投稿不修改
+
+%%%-------------中文信息---------------
+\cntitle{基于速度-航向整形的无人艇路径跟踪方法 } %输入中文标题
+
+
+%                  新投稿不要修改下面的姓名及单位
+%%%中文作者和单位，\dag代表通信作者，“作者一”代表3个字的名，“作者”代表2个字的名
+\cnauthor{作者一\makebox{$^{1,2\dag}$},~~作~~~~者\makebox{$^{1}$}}%新投稿不修改
+{(1. 作者单位1~二级单位，省份~城市~邮编；2. 作者单位2~二级单位, 省份~城市~邮编)}%%省会城市无需加省%%新投稿不要修改
+
+%%%中文摘要
+\cnabstract{针对路径跟踪过程中航向参考突变易导致偏航力矩饱和和双桨推进余量竞争的问题，本文提出一种速度-航向协同整形（speed-heading co-shaping，SHCS）方法。该方法在传统ILOS-PID导引控制结构中增加参考通道整形层，根据当前偏航动力学状态对几何航向参考进行动态整形，并结合整形残差和双桨联合约束对期望纵荡速度进行调度，提高参考命令与执行器能力之间的匹配性。以CyberShip II欠驱动无人艇模型为对象开展仿真验证。结果表明，在典型L形路径定常海流场景下，SHCS在仅小幅增加横向误差的情况下，有效降低了偏航控制输入并消除了偏航力矩饱和；随机化配对蒙特卡洛实验表明，所提方法在不同扰动和初始条件下均能稳定抑制偏航饱和现象，并降低偏航控制能耗。该方法无需改变原有ILOS-PID控制框架，能够提高路径跟踪控制在执行器受限条件下的适应性。}
+
+%%%中文关键词
+\cnkeyword{ 无人艇；路径跟踪；视线法；航向参考整形；蒙特卡洛验证}
+
+%%%分类号、标识码
+\clc{}%中文分类号,请作者自行查找并给出
+\wenxianbiaoshi{A}%文献标志码
+
+%%%%%%%----------------英文信息------------
+\entitle{Speed-heading co-shaping for USV path following}
+
+
+%%%%%%%              新投稿不要修改下面的英文名及单位
+\enauthor{ZUO Zhe-yi\makebox{$^{1,2\dag}$},~~ZUO Zhe\makebox{$^{1}$}}{
+(1. College of Information Science and Engineering，Northeastern University，Shenyang~110004，China；2. College of Engineering, Qufu Normal University，Rizhao~276826，China)}
+
+
+\enabstract{To address the issues of yaw moment saturation and actuator allocation conflict between the twin-propeller propulsion system caused by sudden changes in the heading reference during path tracking, this paper proposes a speed-heading co-shaping (SHCS) method. This method adds a reference shaping layer to the traditional ILOS-PID guidance control architecture. It dynamically shapes the geometric heading reference based on the current yaw dynamic state and schedules the desired surge velocity by combining the shaping residual with joint constraints on both propellers, thereby improving the match between the reference command and the actuator’s feasibility. Simulation verification was conducted using the CyberShip II underactuated unmanned surface vehicle model. The results show that, under typical steady-state ocean current conditions along an L-shaped path, SHCS effectively reduces yaw control inputs and eliminates yaw moment saturation while only slightly increasing lateral error. Randomized paired Monte Carlo experiments further demonstrate that the proposed method can consistently suppress yaw saturation and reduce yaw control energy consumption under various disturbances and initial conditions. This method does not require modifications to the original ILOS-PID control framework and enhances the adaptability of path-following control under actuator constraints. }
+
+\enkeyword{unmanned surface vehicle; path following; line-of-sight guidance; heading reference shaping; Monte Carlo validation}
+
+\maketitle
+
+
+
+
+\begin{multicols}{2}
+\section{引\quad  言}
+无人水面艇（unmanned surface vehicle, USV）能够在海洋测绘、港口巡检、应急搜救和近岸安防等任务中实现长时间自主航行，其发展需求和控制挑战受到持续关注[1,2]。在实际任务中，参考路径通常由离散航点或分段路径给定。路径跟踪控制不仅需要保证横向误差收敛，还需要在海流扰动、模型不确定性和执行器约束作用下兼顾控制能耗与执行器负荷。
+
+视线导引（Line-of-Sight，LOS）[3]及其积分扩展形式（Integral LOS，ILOS）[4]因结构简单、参数易于整定且工程实现方便，被广泛应用于无人艇路径跟踪控制系统中。该类方法通常根据当前位置与参考路径之间的几何关系计算期望航向，再由底层航向控制器完成跟踪。对于由航点连接形成的折线路径，航段切换会引起路径方位角突变进而使LOS几何期望航向ψd发生阶跃变化，导致USV的PID控制器里产生两种限制作用：一是初始偏航力矩指令可能超过最大可实现偏航力矩，使得执行器饱和并引发积分饱和；二是偏航控制会占用双桨推进器可行域，降低可用于纵荡推进的余量，影响转弯阶段的速度维持和横向误差收敛。因此，折线路径跟踪中的关键问题不仅是导引参数或PID增益的选择，还要考虑导引参考在底层执行器约束下的可执行性。
+
+现有研究主要从三类途径缓解上述矛盾。一是导引律改进，例如ILOS[5]、自适应LOS[6]和曲线路径参数化方法，它们能够降低定常海流引起的稳态横向误差，但通常不直接约束航段切换时的航向参考变化率。二是在参考通道加入一阶滤波、固定速率限幅、抗积分饱和或事件触发等工程环节，这类方法实现简单，但时间常数、限幅阈值或补偿增益多为预设常数，难以根据当前偏航速率、推进器余量和转弯强度自适应调整。三是采用控制分配或模型预测控制显式处理执行器约束，其理论框架更完整，但对模型精度、在线优化能力和工程部署条件要求较高。对于已采用ILOS-PID结构的工程系统，更直接的思路是在导引律与底层控制器之间增加可执行参考生成机制[7]，使几何导引命令在进入PID控制器前与执行器能力相协调。
+
+本文提出一种速度-航向协同整形（speed-heading co-shaping, SHCS）方法。该方法不对LOS制导律以及PID控制器进行改动，而是在二者之间加入一个参考通道整形层。动态航向整形器利用偏航动力学可达性将几何期望航向ψd转化为可执行参考航向ψref；速度调度器基于航向整形残差和推进器联合约束确定期望纵荡速度ud，在转弯过程中合理分配偏航控制与纵荡推进所使用的执行器资源。该方法不仅保留了LOS的几何跟踪性能，也避免了将过大的航向变化直接作用到底层PID控制器上。
+
+本文工作主要包括：
+1）基于双桨欠驱动USV的推进器可行域，分析航点路径航段切换导致ILOS-PID偏航力矩饱和与推进余量竞争的原因，并将其形式化为参考通道可执行化问题；
+2）构造基于偏航动力学的动态航向整形器，使航向参考变化率随当前偏航状态和执行器能力自适应调整；
+3）设计速度调度机制，利用航向整形残差以及双桨联合约束使期望纵荡速度与转弯过程中的推进器可行域相匹配；
+4）在统一配置下开展典型场景、多路径泛化、随机化配对蒙特卡洛、参数敏感性和消融实验，验证所提方法在横向误差、控制能耗和执行器饱和方面的性能变化。
+
+\section{问题建模}
+
+
+\section{编排要求}
+文中需特别说明的内容主要有以下几个方面:
+
+1)\,文稿中题目、作者、单位、摘要、关键词、参考文献等应齐全.\;要求立论正确,论证严谨,论据充分,数据准确,语言通顺,文字流畅,标点符号正确;特别应具有学术性、创新性和前沿性.
+
+2)\,中文摘要应体现目的、方法、结果和结论4要素,中文摘要以300\,$\sim$\,400字为宜,一般不用第一人称.
+
+3)\,关键词应能反映文章的主要内容,以6～8个为宜.\;中文关键词一般不用英文(人名等除外).
+
+4)\,综述、论文、短文等文章按中国图书馆图书分类法进行分类.
+
+5)\,DOI号由编辑修改,作者无需修改.
+
+6)\,文中引言部分一般介绍研究背景及现状,但要简明扼要,尽量不要出现大量公式及定理性内容.
+
+7)\,正文中凡表示人名、地名、专有名词、计量单位、专用符号等外文,一律用正体.\;如Goodwin,\,New York,\,GA,\,kW,\,H$_2$O,\,sin,\,lim,\,max,\,sup,\,diag,时间s,长度m,微分d,指数e,连加$\sum$,圆周率$\uppi$,增量$\Delta$,转置符号T,虚数i(或j)等;凡表示变量或一般函数的外文字母,一律用斜体.\;如:\,$y(k)=C(k)+E(k)$.
+
+8)\,一般的文章包含一级标题、二级标题甚至三级标题,例如:2;2.1;2.1.1等.
+
+9)\,文章中的数学符号,例如$x, y, Z$等.在以下的相关章节中会有
+具体的公式例子.
+
+10)\,文中的插图要做到布局合理,尺寸适当,图形美观,线条清晰,文字符号简约.文中的图应以pdf格式插入,且图中的有关说明应用中文,图名应该为中文形式且在图的正下方.
+
+11)\,表格结构应简洁、明确,尽量采用三线表(即:表格中没有竖线,只有三条横线(特殊情形除外),表名在表格的正上方.\;表中参量应标明单位.\;过长的表格可以通栏.
+
+12)\,文中引用的参考文献应是正式出版的图书、期刊、会议论文集等.\;文章中的参考文献的序号应该按正文中出现的先后顺序编排.
+
+
+
+13)\,定稿时论文不超过13页;综述与评论以及长论文字数可稍放宽.\;凡字数超过要求、文字不流畅、编排混乱的稿件不发表.
+
+\section{应用环境}
+应用如下的各种应用环境,定理、引理等自动生成,并按顺序生成编号.
+
+\begin{dingli}
+	应用这个环境,定理编号将自动生成.
+\end{dingli}
+
+\begin{yinli}
+	应用这个环境,引理编号将自动生成.
+\end{yinli}
+
+\begin{tuilun}
+	应用这个环境,推论编号将自动生成.
+\end{tuilun}
+
+\begin{dingyi}
+	应用这个环境,定义编号将自动生成.
+\end{dingyi}
+
+\begin{jiashe}
+	应用这个环境,假设编号将自动生成.
+\end{jiashe}
+
+\begin{li}
+	应用这个环境,例子编号将自动生成.
+\end{li}
+
+\begin{qingkuang}
+	应用这个环境,情况编号将自动生成.
+\end{qingkuang}
+
+\begin{shiyan}
+	应用这个环境,实验编号将自动生成.
+\end{shiyan}
+
+\begin{fangzhen}
+	应用这个环境,仿真编号将自动生成.
+\end{fangzhen}
+
+\begin{suanfa}
+	应用这个环境,算法编号将自动生成.
+\end{suanfa}
+
+
+\begin{mingti}
+	应用这个环境,命题编号将自动生成.
+\end{mingti}
+
+\begin{zhu}
+	应用这个环境,注编号将自动生成.
+\end{zhu}
+
+证明的排版方式如下:
+
+\textbf{证明}\quad 应用$\cdots\cdots$
+
+证明成立. {\Large$\Square$}
+
+算法的步骤可以按如下排版.
+
+step\,1: $\cdots\cdots$;
+
+step\,2: $\cdots\cdots$;
+
+step\,3: $\cdots\cdots$.
+
+
+\section{公式的例子}
+\subsection{公式的应用环境}
+公式请用环境\\
+\verb|\begin{align}...\end{align}|
+%有公式号
+或者\\
+\verb|\begin{align*}...\end{align*}|%没有公式号
+\subsection{几个实例}
+
+\subsubsection{公式分行的例子}
+公式在符号后断开.
+\begin{align}
+{\Arrowvert x^{(1)}_{k+1}-x^{(1)}_k\Arrowvert}_\lambda\leqslant \;&
+\frac{1}{1-h_1(i)}\Arrowvert x^{(1)}_{k+1}(0)-x^{(1)}_k(0)\Arrowvert+\notag\\
+&\frac{h_2(i)}{1-h_1(i)}{\Arrowvert
+	e^{(1)}_k\Arrowvert}_\lambda+\rho(Q).
+\end{align}
+
+
+\subsubsection{矩阵的例子}
+1)~矩阵中元素居中对齐;
+\begin{align}
+\left[\begin{array}{cccc}
+a_{11}b_1& a_{12}&\dots &a_{1n}\\
+a_{21}& a_{22}b_2&\dots &a_{2n}\\
+\vdots&\vdots& \ddots   &\vdots\\
+a_{n1}& a_{n2}&\dots &a_{nn}b_n
+\end{array}\right].\end{align}
+2)~两个公式左边对齐.
+\begin{align}
+&A_1=\left[\begin{array}{cc} 1& -2\\-2 &4
+\end{array}\right],\\
+&A_2=\left[\begin{array}{ccc} 1.1 &-2.7&-22.4\\-2.3 &4.6 &12.7
+\end{array}\right].
+\end{align}
+
+
+\subsubsection{求最优值的例子}
+只有一个公式号的情况,公式号放在最后;各约束条件左对齐.
+\begin{align}
+&\min~\alpha\sum\limits_{i=1}^n\xi_{i}T_{i}+\beta \sum\limits_{l=1}^m \varphi_{l} \max(\chi_{l},~0).\notag\\
+&{\rm{~s.t.~}}T_{i}=\max(0,C_i-D_i),~\forall~i;\notag\\
+&~~~~~~~~c_{i \delta k}-s_{i \delta k}=t_{i \delta k},~\forall~i,\delta,k;\notag\\
+&~~~~~~~~s_{i 2 k}\geqslant c_{i 1 }+e_i,~\forall~i,k;\notag\\
+&~~~~~~~~c_{j \delta' k'}-c_{i \delta k}+M(1-X_{i \delta k j\delta'k'})\geqslant t_{j \delta' k'},\notag\\
+&~~~~~~~~~~~~~~~~~~~~~~~~~~\forall~i,j,\delta,\delta',k,k';\notag\\
+&~~~~~~~~c_{i \delta k}-c_{j \delta' k'}+M X_{i \delta k j\delta'k'}\geqslant t_{i \delta k},\notag\\
+&~~~~~~~~~~~~~~~~~~~~~~~~~~\forall~i,j,\delta,\delta',k,k';\notag\\
+&~~~~~~~~|\min(\chi_{l},0)|\leqslant b_l,~\forall~ l;\notag\\
+&~~~~~~~~\sum\limits_{l=1}^{l'-1} (b_{l}+\chi_{l})< \varepsilon_{\pi_{i \delta k}}\leqslant  \sum\limits_{l=1}^{l'} (b_{l}+\chi_{l}),~\pi_{i \delta k}=l;\notag\\
+&~~~~~~~~X_{i \delta k j\delta'k'} \in {0,1},~\forall~ i,j,\delta,\delta',k,k'.
+\end{align}
+
+
+\subsubsection{带有大括号的例子}\vspace{-15pt}
+\begin{align}
+\left\{\begin{aligned}
+&\dot{x}(t)=A_{i}x_{t}(0)+A_{i1}x_{t}(-r);\\
+&y(t)=C_{i}x_{t}(0),t\geqslant t_{0}, i\in\{1, 2\}.
+\end{aligned}\right.
+\end{align}
+
+
+\subsection{调整公式字体大小的特例}
+
+用命令 \textbackslash displaystyle  可以调整在文字中过小的公式.\;$f(z)\thickapprox{\displaystyle\frac{1+\frac{1}{2}z+z^2+\frac{1}{2}z^3}{1-\frac{1}{2}z+z^2}}.$
+类似前面这样的例子.
+
+用命令 \textbackslash textstyle 可以调整公式中过大的情况.\;如下:
+\begin{align}
+&{\bm z}^{\rm T}(t)\{A_q^{\rm T}[P(t)+I]A_q-[P(t)+I]\}{\bm z}(t)+ \notag\\
+&{\textstyle\bigcup\limits_{i=1}^m}\varint\nolimits_{t-\tau_i}^t{\bm
+	z}^{\rm T}(s)\{A_q^{\rm T}A_q-I\}{\bm z}(s){\rm d}s\leqslant \notag\\
+&{\bm z}^{\rm T}(t)\{A_q^{\rm T}[P(t)-I]A_q-[P(t)-I]\}{\bm z}(t)+ \notag\\
+&{\textstyle\bigcup\limits_{i=1}^m}\varint\nolimits_{t-\tau_i}^t{\bm
+	z}^{\rm T}(s)\{A_q^{\rm T}A_q-I\}{\bm z}(s){\rm d}s\leqslant 0.
+\end{align}
+
+\section{插~~~~~~图}
+
+插图的格式为.eps,并利用下面的环境插入.图形的位置由命令
+中“trim=0 0 0 0”来控制,可以通过修正其中的4个参数来移动图形的位置.
+所给出的4个数字分别表示从图形的左边缘、下边缘、右边缘、上边缘被截去的值,
+正数表示从边缘截去的大小, 而负数表示从边缘加上的大小.\;本刊为黑白出版,不同颜色的线条不易区分,请画成不同样式的线条.
+
+1)~流程图尽量简洁,步骤清楚,结构紧凑,外框与字符之间空隙适当,如图1所示.\vspace{10pt}
+\begin{center}
+	\includegraphics[scale=1,trim=0 0 0 0]{template-1.pdf}\\
+	\label{Fig1}
+	\figcaption{图形标题2}
+\end{center}
+
+2)~框图尺寸46mm$\times$30mm,标明横纵坐标名称及单位,横坐标数值顶端对齐,左侧纵坐标数值右对齐,如图2所示.
+\begin{center}
+	\includegraphics[scale=1,trim=0 0 0 0]{template-2.pdf}\\
+	\label{Fig1}
+	\figcaption{图形标题1}
+\end{center}
+
+3)~图中有若干分图的必须有分图名,如图3所示.
+\begin{center}
+	\includegraphics[scale=1,trim=0 0 0 0]{template-3.pdf}\\
+	\label{Fig1}
+	\figcaption{图形标题3}
+\end{center}
+
+
+
+\section{表~~~~~~格}
+表格:表格结构应简洁、明确,尽量采用三线表(即:表格中没有竖线,只有三条横线(特殊情形除外),表名在表格的正上方.\;表中参量应标明单位.\;过长的表格可以通栏.
+
+\end{multicols}
+\begin{center}
+\tabcaption{班组重构前后成本对比}
+\label{tab:1}
+\renewcommand\tabcolsep{10.6pt}%调整表格长度
+\begin{tabular}
+	{ccccccccc}\toprule
+	%	\multirow{2}{1cm}[-2pt]{变量}......."{1cm}"代表这一栏目需要的长度;"[-2pt]"是为了让变量居中
+	\multirow{2}{*}[-2pt]{$n$}&\multirow{2}{*}[-2pt]{$\alpha$} &\multirow{2}{*}[-2pt]{$\beta$}&\multicolumn{2}{c}{$f=1.5$} &\multirow{2}{*}[-2pt]{${\rm{Gap}}\%$}&\multicolumn{2}{c}{\multirow{1}{*}{$f=2$}} &\multirow{2}{*}[-2pt]{${\rm{Gap}}\%$}\\
+	\cmidrule(lr){4-5}\cmidrule(lr){7-8}
+	&&&重构&不重构&&重构&不重构\\\midrule
+	&0.8&0.2&2\,140.6&4\,345.2&50.7&392.5&988.1&60.3\\
+	$n=4$&0.5&0.5&1\,685.4&2\,717.0&38.0&143.1&215.3&33.5\\
+	&0.2&0.8&944.5&1\,148.7&17.8&133.5&170.3&21.6\\\midrule
+	&0.8&0.2&8\,865.7&16\,936.5&47.7&4\,949.9&10\,237.0&51.7 \\
+	$n=6$&0.5&0.5&6\,264.6&10\,323.1&39.3&3\,232.4&6\,574.7&50.8\\
+	&0.2&0.8&3\,110.8&4\,092.7&24.0&1\,943.7&2\,676.7&20.0\\
+	\bottomrule
+\end{tabular}\end{center}
+\begin{multicols}{2}
+
+\begin{center}
+	{{\heiti\zihao{-5}\tablename\textbf{2}~\,~~建立模型所用变量}\vspace{5pt}}
+	
+	\renewcommand\tabcolsep{7pt}
+	{\fontsize{7.5pt}{11.6pt}\selectfont
+		\begin{tabular}{cc||cc}\bottomrule
+			序号  &       变量名称 &       序号 &                 变量名称 \\\hhline{--||--}
+			$x_1$  &       搅拌速率\,/\,(r\,/\,min)   &   $x_7$  &      碱流加速率\,/\,(g\,/\,L)       \\	
+			$x_2$  &       通风速率\,/\,(L/h)     &   $x_8$  &      酸流加速率\,/\,(g\,/\,L)       \\	
+			$x_3$  &       补料温度\,/\,K       &   $x_9$  &       温度\,/\,K\\	
+			$x_4$  &       底物流加速率\,/\,(L/h) &  ${x_{10}}$  &       冷水流速\,/\,(L\,/\,h)\\
+			$x_5$  &        溶氧浓度\,/\,(g\,/\,L)     &  ${x_{11}}$  &       菌体浓度\,/\,(g\,/\,L)\\
+			$x_6$  &        PH值              &  ${x_{12}}$  &       产物浓度\,/\,(g\,/\,L)\\[-2pt]
+			\bottomrule
+	\end{tabular}}
+\end{center}
+
+\section{参考文献}
+文章中的参考文献的序号应该按正文中出现的先后顺序编排(例如:因此这一控制方法已在控制理论领域引起了广泛的关注,其应用不仅
+限于机器人控制领域\textsuperscript{[1-2]},而且在非线性系统的鲁棒
+控制上也有了较大的发展\textsuperscript{[3-6]}.\;此外,在离散系统、分布参数系统上有了相应的应用\textsuperscript{[7-9]}.\;这一控制方法正逐步形成控制理论领域中的一个新方向,具体可以参见文献\textsuperscript{[10]}).\;同一处引用多篇文献,多篇文献置于一个方括号中;若多篇文献中没有连续的号,则各篇文献号之间用逗号;若多篇文献中即有不连续的,又有连续的号,则不连续的号之间用逗号,连续号之间用短连线,如[1,3-5].\;各类型参考文献的格式如下.
+
+1)~期刊文章:
+[序号] 作者.\;文献题名[J].\;刊名,年,卷(期):起止页码.
+
+
+2)~图书:
+[序号] 作者.\;文献题名[M].\;出版地:出版者,出版年:起止页码.
+
+3)~论文集:
+[序号] 作者.\;文献题名[C].\;论文集名.\;出版地(指城市):出版者(或会议地点), 出版年:起止页码.
+
+4)~学位论文和学术报告:
+[序号] 作者.\;文献题名[D或R].\;出版地(城市):出版者(单位,具体到学院名称),(出版)年份:起止页码.
+
+5)~国家标准:
+[序号] 标准编号,标准名称[S].
+
+6)~专利:
+[序号] 专利所有者.\;专利题名[P].\;国别:专利号.\;公告日期.
+
+7)~电子文档:
+[序号] 主要责任者.\;题名[文献类型标志/文献载体标志].\;出版地:出版者, 出版年(更新或修改日期)[引用日期].\;获取和访问路径.
+
+8)~各种未定义类型的文献: [序号] 主要责任者.\;文献题名[Z].\;出版地(城市):出版者(单位),(出版)年份.
+
+以上非英文文献者均需译成英文附在其后.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  参考文献
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{thebibliography}{99}
+	%段落之间的竖直距离
+	%1
+	%{\renewcommand{\baselinestretch}{1.02}\selectfont
+	\addtolength{\itemsep}{-0.7em}
+	%\bibitem{1}作者. 期刊的论文名[J]. 刊名, 出版年份, 卷号(期号): 起止页码.%
+	\bibitem{1}刘于之, 李木国, 杜海. 具有时延和丢包的NCS鲁棒$H_{\infty}$控制[J]. 控制与决策, 2014, 29(3): 517-522.\\
+	(Liu Y Z, Li M G, Du H. Robust $H_{\infty}$ control of NCS with delay and packet dropout[J]. Control and Decision, 2014, 29(3): 517-522.)
+	
+	%\bibitem{2}作者. 著作名称[M]. 出版地: 出版单位, 出版年份: 起止页码.%
+	\bibitem{2}Ricci F, Rokach L, Shapira B. Recommender systems handbook[M]. Berlin: Springer, 2011: 1-35.
+	
+	%\bibitem{3}作者. 学位论文名称[D]. 出版地: 保存者, 出版年份: 起止页码.%
+	\bibitem{3}章欣已. 基于贝叶斯估计多品种小批量生产的统计过程控制研究[D]. 上海: 上海交通大学机械与动力工程学院, 2013: 22-23.\\
+	(Zhang X Y. Statistical process control for job shop manufacturing with bayesian approach[D]. Shanghai: School of Mechanical Engineering, Shanghai Jiaotong University, 2013: 22-23.)
+	
+	%\bibitem{4}作者. 会议论文名[C]. 文集名. 出版地或会议地点: 出版者, 出版年份: 起止页码.%
+	\bibitem{4}Zhu X L, Yue D. Stability of sampled-data systems with application to networked control systems[C]. Proc of the 32nd Chinese Control Conf. Xi'an: IEEE, 2013: 6572-6577.
+	
+	%\bibitem{5}作者. 报告名称[R]. 出版地: 出版者, 出版年份: 起止页码.%
+	\bibitem{5}Feng Xiqiao. LBB analysis of nuclear reactor pressure pipes and pressure vessels[R]. Beijing: Nuclear Energy Technology Design and Research Institute, 1997: 9-10.
+	
+	%\bibitem{6}主要责任者. 电子文献题名[电子文献及载体类型标识, 如[DB/OL], [DB/MT], [M/CD], [CP/DK], [J/OL], [EB/OL]]. (发表或更新日期)[引用日期]. 电子文献的出处或可获得地址.%
+	\bibitem{6}王明亮.关于中国学术期刊标准化数据库系统工程的进展[EB/OL]. (1998-08-16)[1998-10-04]. http://www.cajcd.edu.cn/pub/wml.txt/9808102.html.
+	
+	%\bibitem{7}作者. 篇名[N]. 报纸名称, 出版日期(版次).%
+	\bibitem{7}French W. Between silences: A voice from China[N]. Atlantic Weekly, 1987-8-15(33).
+	
+	%\bibitem{8}专利所有者. 专利题名[P]. 专利国别: 专利号, 出版日期.%
+	\bibitem{8}Hasegawa, Toshiyuki, Yoshida, et al. Paper coating compostion[P]. Japan: 0634524, 1995-01-18.
+	
+	%\bibitem{9}标准编号,标准名称[S].%
+	\bibitem{9}GB/T 16159-1996, 汉语拼音正词法基本规则[S].
+	
+	%\bibitem{10}主要责任者. 其他类型的文献题名[Z]. 出版地: 出版者, 出版年.%
+	\bibitem{10}张永禄. 唐代长安词典[Z]. 西安: 陕西人民出版社, 1980.
+
+\end{thebibliography}\vspace{-20pt}
+
+
+
+\end{multicols}
+\end{document}

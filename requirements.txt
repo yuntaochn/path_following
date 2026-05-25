@@ -1,0 +1,13 @@
+# Runtime dependencies for the path-following experiment scripts.
+#
+# Install in a fresh environment with:
+#   pip install -r requirements.txt
+#
+# The project itself uses a src/ layout and can be imported directly by the
+# scripts. For editable package-style use, run:
+#   pip install -e .
+
+numpy>=1.24,<3
+scipy>=1.10,<2
+matplotlib>=3.7,<4
+
